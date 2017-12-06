@@ -10,9 +10,8 @@ from utils import slice_rect, rect_to_str, point_to_str, SlideHelper
 
 
 class SlideViewer(QWidget):
-    def __init__(self, parent=None, tile_size=(300, 300), zoom_step=1.15):
+    def __init__(self, parent=None, zoom_step=1.15):
         super().__init__()
-        self.tile_size = tile_size
         self.zoom_step = zoom_step
         self.view = QGraphicsView()
         self.scene = QGraphicsScene()
@@ -34,22 +33,25 @@ class SlideViewer(QWidget):
         self.rubber_band = QRubberBand(QRubberBand.Rectangle, self)
         self.mouse_press_view = QPoint()
 
-    def load_slide(self, slide_path):
+    def load_slide(self, slide_path, preffered_rects_count=2000):
         self.slide_path = slide_path
         self.slide = openslide.OpenSlide(slide_path)
         self.slide_helper = SlideHelper(self.slide)
+        slide_w, slide_h = self.slide_helper.get_level_size_for_level(0)
+        t = ((slide_w * slide_h) / preffered_rects_count) ** 0.5
+        tile_size = (int(t), int(t))
 
-        self.init_tiles_pyramid_models()
+        self.init_tiles_pyramid_models(tile_size)
         self.init_scale()
 
         self.selected_rect_downsample = 1
         self.selected_rect_pos_0 = QPoint(0, 0)
         self.selected_rect_size_0 = self.slide_helper.get_level_size_for_level(0)
 
-    def init_tiles_pyramid_models(self):
+    def init_tiles_pyramid_models(self, tile_size):
         self.tiles_pyramid_models = []
         for level in range(self.slide_helper.get_max_level() + 1):
-            tiles_pyramid_model = self.build_tiles_pyramid_model(level, (self.tile_size[0], self.tile_size[1]))
+            tiles_pyramid_model = self.build_tiles_pyramid_model(level, (tile_size[0], tile_size[1]))
             self.tiles_pyramid_models.append(tiles_pyramid_model)
 
     def init_scale(self):
@@ -191,7 +193,7 @@ class SlideViewer(QWidget):
         # print("dx after resetTransform:", self.view.transform().dx())
         # print("horizontalScrollBar after resetTransform:", self.view.horizontalScrollBar().value())
 
-    def build_tiles_pyramid_model(self, level, tile_size=(300, 300)):
+    def build_tiles_pyramid_model(self, level, tile_size):
         tiles_rects = slice_rect(self.slide_helper.get_level_size_for_level(level), tile_size)
         tiles_graphics_group = QGraphicsItemGroup()
         for tile_rect in tiles_rects:

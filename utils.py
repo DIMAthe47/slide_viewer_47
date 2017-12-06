@@ -3,7 +3,7 @@ from PyQt5.QtCore import QRectF, QPoint, QPointF
 from PyQt5.QtGui import QPolygonF
 
 
-def slice_rect(rect_size, tile_size=(300, 300)):
+def slice_rect(rect_size, tile_size):
     tiles_rects = []
     x, y = (0, 0)
     x_size, y_size = rect_size
