@@ -5,14 +5,14 @@ from PyQt5.QtWidgets import QGraphicsItem, QWidget
 
 
 class SelectedGraphicsRect(QGraphicsItem):
-    def __init__(self, qrect: QRect):
+    def __init__(self, qrectf: QRectF):
         super().__init__()
-        self.qrect = QRect(qrect.x(), qrect.y(), qrect.width(), qrect.height())
+        self.qrectf = QRectF(qrectf)
         self.setAcceptedMouseButtons(Qt.NoButton)
 
     def boundingRect(self):
-        return QRectF(self.qrect)
+        return self.qrectf
 
     def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
               widget: typing.Optional[QWidget] = ...):
-        painter.drawRect(self.qrect)
+        painter.drawRect(self.qrectf)

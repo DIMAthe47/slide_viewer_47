@@ -38,7 +38,7 @@ class GraphicsTile(QGraphicsItem):
         self.pixmap = QPixmapCache.find(self.cache_key)
         if not self.pixmap:
             # print("read")
-            tile_pilimage = self.slide.read_region((self.slide_rect_0.topLeft().x(), self.slide_rect_0.topLeft().y()),
+            tile_pilimage = self.slide.read_region((self.slide_rect_0.x(), self.slide_rect_0.y()),
                                                    self.level, (self.slide_rect_0.width(), self.slide_rect_0.height()))
             self.pixmap = self.pilimage_to_pixmap(tile_pilimage)
             QPixmapCache.insert(self.cache_key, self.pixmap)

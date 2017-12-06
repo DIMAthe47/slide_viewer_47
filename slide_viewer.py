@@ -96,7 +96,7 @@ class SlideViewer(QWidget):
         downsample = self.get_current_level_downsample()
         self.selected_qrectf_level = self.get_current_level_downsample()
         self.selected_qrectf_0_level = QRectF(pos_scene * downsample,
-                                              QSizeF(rect_scene.width() * downsample, rect_scene.height() * downsample))
+                                              QSizeF(rect_scene.size() * downsample))
 
     def update_selected_rect_view(self):
         for tiles_pyramid_model in self.tiles_pyramid_models:
