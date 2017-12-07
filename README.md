@@ -6,7 +6,7 @@ Supports:
 - pan
 - selecting rectangle
 
-Examples of whole-slide images can be downloaded from [openslide-testdata](http://openslide.cs.cmu.edu/download/openslide-testdata) page.
+Examples of whole-slide images can be downloaded from [openslide-testdata](http://openslide.cs.cmu.edu/download/openslide-testdata/) page.
 
 Screenshot of slide viewer widget:
 
