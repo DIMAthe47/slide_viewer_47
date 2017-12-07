@@ -39,8 +39,11 @@ class SlideViewer(QWidget):
         self.slide_helper = SlideHelper(self.slide)
         slide_w, slide_h = self.slide_helper.get_level_size_for_level(0)
         t = ((slide_w * slide_h) / preffered_rects_count) ** 0.5
+        if t < 1000:
+            t = 1000
         tile_size = (int(t), int(t))
 
+        self.scene.clear()
         self.init_tiles_pyramid_models(tile_size)
         self.init_scale()
 
