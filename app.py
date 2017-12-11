@@ -21,6 +21,7 @@ class SliderViewerMainWindow(QMainWindow):
         file_path = self.open_file_name_dialog()
         if file_path:
             self.slide_viewer.load_slide(file_path)
+            QPixmapCache.clear()
 
     def get_available_formats(self):
         return [

@@ -29,6 +29,8 @@ class SlideViewer(QWidget):
 
         self.view.setTransformationAnchor(QGraphicsView.NoAnchor)
         self.view.viewport().installEventFilter(self)
+        self.view.items().clear()
+        self.view.invalidateScene()
 
         self.rubber_band = QRubberBand(QRubberBand.Rectangle, self)
         self.mouse_press_view = QPoint()
@@ -44,6 +46,8 @@ class SlideViewer(QWidget):
         tile_size = (int(t), int(t))
 
         self.scene.clear()
+        self.view.viewport().update()
+        self.scene.invalidate()
         self.init_tiles_pyramid_models(tile_size)
         self.init_scale()
 
