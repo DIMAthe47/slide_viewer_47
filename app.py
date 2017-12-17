@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QApplication, QMainWindow, QAction, QFileDialog, QMenuBar
 from slide_viewer import SlideViewer
-from slide_viewer_menu_bar import SlideViewerMenuBar
+from slide_viewer_menu import SlideViewerMenu
 
 
 class SliderViewerMainWindow(QMainWindow):
@@ -13,8 +13,10 @@ class SliderViewerMainWindow(QMainWindow):
         self.slide_viewer = SlideViewer(zoom_step=1.15)
         self.setCentralWidget(self.slide_viewer)
 
-        menuBar = SlideViewerMenuBar(self)
-        self.setMenuBar(menuBar)
+        menuBar = self.menuBar()
+        slide_viewer_menu = SlideViewerMenu(menuBar)
+        slide_viewer_menu.set_slide_viewer(self.slide_viewer)
+        menuBar.addMenu(slide_viewer_menu)
 
 
 if __name__ == "__main__":

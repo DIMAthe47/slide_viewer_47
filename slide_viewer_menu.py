@@ -1,14 +1,17 @@
 from PyQt5.QtGui import QPixmapCache
-from PyQt5.QtWidgets import QMenuBar, QAction, QFileDialog
+from PyQt5.QtWidgets import QMenuBar, QAction, QFileDialog, QMenu
 
 
-class SlideViewerMenuBar(QMenuBar):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.loadAction = QAction("load_slide", parent)
+class SlideViewerMenu(QMenu):
+    def __init__(self, parent, title="slide"):
+        super().__init__(title, parent)
+        self.loadAction = QAction("load", parent)
         self.addAction(self.loadAction)
         self.loadAction.triggered.connect(self.on_load_slide)
-        self.slide_viewer = parent.slide_viewer
+        self.slide_viewer = None
+
+    def set_slide_viewer(self, slide_viewer):
+        self.slide_viewer = slide_viewer
 
     def on_load_slide(self):
         file_path = self.open_file_name_dialog()
