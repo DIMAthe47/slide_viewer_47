@@ -53,7 +53,7 @@ class SlideHelper():
     def get_level_size_for_level(self, level):
         return self.slide.level_dimensions[level]
 
-    def get_rect_for_level(self, level):
+    def get_rect_for_level(self, level) -> QRectF:
         size_ = self.get_level_size_for_level(level)
         rect = QRectF(0, 0, size_[0], size_[1])
         return rect
@@ -66,3 +66,6 @@ class SlideHelper():
 
     def get_slide(self):
         return self.slide
+
+    def get_best_level_for_downsample(self, downsample):
+        return self.slide.get_best_level_for_downsample(downsample)

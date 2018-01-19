@@ -112,6 +112,7 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
             self.leveled_graphics_selection.clear_level(level)
             self.leveled_graphics_selection.add_item_to_level_group(level, selected_graphics_rect)
 
+
     def update_visible_level(self, visible_level):
         for leveled_group in self.leveled_groups:
             leveled_group.update_visible_level(visible_level)

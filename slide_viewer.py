@@ -1,7 +1,7 @@
 import PyQt5
 import openslide
-from PyQt5.QtCore import QPoint, Qt, QEvent, QRect, QSize, QRectF, QSizeF, pyqtSignal
-from PyQt5.QtGui import QWheelEvent, QMouseEvent, QColor, QImage, QPainter
+from PyQt5.QtCore import QPoint, Qt, QEvent, QRect, QSize, QRectF, QSizeF, pyqtSignal, QPointF, QMarginsF
+from PyQt5.QtGui import QWheelEvent, QMouseEvent, QColor, QImage, QPainter, QTransform
 from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QVBoxLayout, QLabel, QRubberBand
 
 from graphics.slide_graphics_group import SlideGraphicsGroup
@@ -72,16 +72,21 @@ class SlideViewer(QWidget):
 
     def init_scale(self):
         self.reset_view_transform()
-        slide_rect_size = self.slide_helper.get_rect_for_level(self.slide_helper.get_max_level()).size()
-        ratio = 1.25
-        view_width = self.view.viewport().width()
-        view_height = self.view.viewport().height()
-        zoom_width = view_width / (ratio * slide_rect_size.width())
-        zoom_height = view_height / (ratio * slide_rect_size.height())
-        zoom_ = min([zoom_width, zoom_height])
-        self.logical_zoom = 1 / self.slide_helper.get_downsample_for_level(self.slide_helper.get_max_level())
+        max_level = self.slide_helper.get_max_level()
+        self.logical_zoom = 1 / self.slide_helper.get_downsample_for_level(max_level)
         self.zoom_for_current_level = 1
-        self.update_scale(QPoint(0, 0), zoom_)
+        self.fit_in_view()
+
+    def fit_in_view(self):
+        best_level = self.get_level_for_logical_zoom(self.logical_zoom)
+        self.update_scene_rect_for_level(best_level)
+        margins = QMarginsF(200, 200, 200, 200)
+        self.view.fitInView(self.scene.sceneRect() + margins, Qt.KeepAspectRatio)
+        scale_ = self.view.transform().m11()
+        self.logical_zoom *= scale_
+        self.zoom_for_current_level *= scale_
+        print(self.view.transform())
+        self.slide_graphics.update_visible_level(self.slide_helper.get_max_level())
 
     def eventFilter(self, qobj: 'QObject', event: 'QEvent'):
         self.eventSignal.emit(event)
@@ -92,6 +97,7 @@ class SlideViewer(QWidget):
         elif isinstance(event, QMouseEvent):
             if event.button() == Qt.MiddleButton:
                 self.take_screenshot()
+                self.view.translate(200, 200)
             elif event.button() == Qt.LeftButton:
                 if event.type() == QEvent.MouseButtonPress:
                     self.mouse_press_view = QPoint(event.pos())
@@ -103,6 +109,7 @@ class SlideViewer(QWidget):
                     self.remember_selected_rect_params()
                     self.slide_graphics.update_selected_rect_0_level(self.selected_rect_0_level)
                     self.update_labels()
+                    self.scene.invalidate()
                     return True
             elif event.type() == QEvent.MouseMove:
                 self.mouse_pos_scene_label.setText(
@@ -130,56 +137,61 @@ class SlideViewer(QWidget):
         zoom_in = self.zoom_step
         zoom_out = 1 / zoom_in
         zoom_ = zoom_in if event.angleDelta().y() > 0 else zoom_out
-        self.update_scale(event.pos(), zoom_)
+        # self.update_scale(event.pos(), zoom_)
+        self.update_scale2(event.pos(), zoom_)
         event.accept()
 
-    def update_scale(self, mouse_pos: QPoint, zoom):
+    def set_view_from_rect(self, rect_scene, visible_level):
+        # another way to adjust view - but scaling and translating will be not accurate
+        self.view.fitInView(rect_scene, Qt.KeepAspectRatio)
+        self.update_items_visibility_for_current_level()
+
+    def update_scale2(self, mouse_pos: QPoint, zoom):
         old_mouse_pos_scene = self.view.mapToScene(mouse_pos)
+        old_view_scene_rect = self.view.mapToScene(self.view.viewport().rect()).boundingRect()
+
         old_level_downsample = self.get_current_level_downsample()
-
         self.logical_zoom *= zoom
-        self.view.scale(zoom, zoom)
         self.zoom_for_current_level *= zoom
-
         new_level_downsample = self.get_current_level_downsample()
-        if old_level_downsample == new_level_downsample:
-            self.update_scene_rect_for_current_level()
 
-        new_mouse_pos_scene = self.view.mapToScene(mouse_pos)
-        mouse_pos_delta = new_mouse_pos_scene - old_mouse_pos_scene
-        self.view.translate(mouse_pos_delta.x(), mouse_pos_delta.y())
+        level_scale_delta = 1 / (new_level_downsample / old_level_downsample)
 
-        if old_level_downsample != new_level_downsample:
-            new_view_pos_scene = self.view.mapToScene(self.view.rect().topLeft())
-            level_scale_delta = 1 / (new_level_downsample / old_level_downsample)
-            shift_scene = new_view_pos_scene
-            shift_scene *= level_scale_delta
-            self.reset_view_transform()
-            self.update_scene_rect_for_current_level()
-            scale_ = self.zoom_for_current_level * new_level_downsample / old_level_downsample
-            # scale_ comes from equation (size*zoom/downsample) == (new_size*new_zoom/new_downsample)
-            self.view.scale(scale_, scale_)
-            self.view.translate(-shift_scene.x(), -shift_scene.y())
-            self.zoom_for_current_level = scale_
+        r = old_view_scene_rect.topLeft()
+        m = old_mouse_pos_scene
+        new_view_scene_rect_top_left = (m - (m - r) / zoom) * level_scale_delta
+        new_view_scene_rect = QRectF(new_view_scene_rect_top_left,
+                                     old_view_scene_rect.size() * level_scale_delta / zoom)
 
+        best_level = self.get_level_for_logical_zoom(self.logical_zoom)
+        self.update_scene_rect_for_level(best_level)
+
+        scale_ = self.zoom_for_current_level * new_level_downsample / old_level_downsample
+
+        scale_ = self.view.transform().m11() * zoom * new_level_downsample / old_level_downsample
+        transform = QTransform().scale(scale_, scale_).translate(-new_view_scene_rect.x(),
+                                                                 -new_view_scene_rect.y())
+        self.reset_view_transform()
+        self.view.setTransform(transform, False)
         self.update_items_visibility_for_current_level()
         self.update_labels()
 
     def update_from_rect_and_downsample(self, rect, downsample):
-        self.update_scene_rect_for_current_level()
+        self.update_scene_rect_for_level()
         if rect:
             self.view.translate(rect.x(), rect.y())
 
-    def update_scene_rect_for_current_level(self):
-        best_level = self.get_current_level()
-        self.scene.setSceneRect(self.slide_helper.get_rect_for_level(best_level))
+    def update_scene_rect_for_level(self, level):
+        rect = self.slide_helper.get_rect_for_level(level)
+        # rect = QRectF(0, 0, 100000, 100000)
+        self.scene.setSceneRect(rect)
 
     def update_items_visibility_for_current_level(self):
-        best_level = self.get_current_level()
+        best_level = self.get_level_for_logical_zoom(self.logical_zoom)
         self.slide_graphics.update_visible_level(best_level)
 
     def update_labels(self):
-        best_level = self.get_current_level()
+        best_level = self.get_level_for_logical_zoom(self.logical_zoom)
         level_downsample = self.slide.level_downsamples[best_level]
         level_size = self.slide_helper.get_level_size_for_level(best_level)
         self.level_label.setText(
@@ -199,11 +211,11 @@ class SlideViewer(QWidget):
         # print("dx after resetTransform:", self.view.transform().dx())
         # print("horizontalScrollBar after resetTransform:", self.view.horizontalScrollBar().value())
 
-    def get_current_level(self):
-        return self.slide_helper.get_best_level_for_downsample(1 / self.logical_zoom)
+    def get_level_for_logical_zoom(self, logical_zoom):
+        return self.slide_helper.get_best_level_for_downsample(1 / logical_zoom)
 
     def get_current_level_downsample(self):
-        best_level = self.get_current_level()
+        best_level = self.get_level_for_logical_zoom(self.logical_zoom)
         level_downsample = self.slide_helper.get_downsample_for_level(best_level)
         return level_downsample
 
