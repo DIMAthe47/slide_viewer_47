@@ -60,3 +60,6 @@ class SlideHelper():
 
     def get_max_level(self):
         return len(self.slide.level_downsamples) - 1
+
+    def get_levels(self):
+        return list(range(self.slide.level_count))

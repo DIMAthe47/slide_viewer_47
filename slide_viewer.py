@@ -7,6 +7,7 @@ from PyQt5.QtGui import QWheelEvent, QMouseEvent, QColor, QImage, QPainter
 from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QVBoxLayout, QLabel, QRubberBand, \
     QGraphicsItemGroup, QHBoxLayout
 
+from graphics.leveled_graphics_group import LeveledGraphicsGroup
 from graphics_grid import GraphicsGrid
 from graphics_rect import GraphicsRect
 from graphics_tile import GraphicsTile
@@ -67,6 +68,14 @@ class SlideViewer(QWidget):
         self.scene.clear()
         self.view.viewport().update()
         self.scene.invalidate()
+        levels = self.slide_helper.get_levels()
+        self.leveled_graphics_group = LeveledGraphicsGroup(levels)
+        self.scene.addItem(self.leveled_graphics_group)
+        self.leveled_graphics_grid = LeveledGraphicsGroup(levels)
+        self.scene.addItem(self.leveled_graphics_grid)
+        self.leveled_graphics_selection = LeveledGraphicsGroup(levels)
+        self.scene.addItem(self.leveled_graphics_selection)
+
         self.init_tiles_pyramid_models(tile_size)
         # if self.parent():
         # self.resize(self.parent().size())
@@ -161,11 +170,14 @@ class SlideViewer(QWidget):
             rect_for_level = QRectF(self.selected_qrectf_0_level.topLeft() / downsample,
                                     self.selected_qrectf_0_level.size() / downsample)
             selected_graphics_rect = SelectedGraphicsRect(rect_for_level)
-            tiles_graphics_group = tiles_pyramid_model["tiles_graphics_group"]
-            if tiles_pyramid_model["selected_graphics_rect"]:
-                tiles_graphics_group.removeFromGroup(tiles_pyramid_model["selected_graphics_rect"])
-            tiles_pyramid_model["selected_graphics_rect"] = selected_graphics_rect
-            tiles_graphics_group.addToGroup(selected_graphics_rect)
+
+            self.leveled_graphics_selection.clear_level(level)
+            self.leveled_graphics_selection.add_item_to_level_group(level, selected_graphics_rect)
+            # tiles_graphics_group = tiles_pyramid_model["tiles_graphics_group"]
+            # if tiles_pyramid_model["selected_graphics_rect"]:
+            #     tiles_graphics_group.removeFromGroup(tiles_pyramid_model["selected_graphics_rect"])
+            # tiles_pyramid_model["selected_graphics_rect"] = selected_graphics_rect
+            # tiles_graphics_group.addToGroup(selected_graphics_rect)
 
         self.selected_rect_label.setText("selected rect (0-level): " + rect_to_str(self.selected_qrectf_0_level))
 
@@ -226,15 +238,18 @@ class SlideViewer(QWidget):
     def update_items_visibility_for_current_level(self):
         best_level = self.get_current_level()
         level_downsample = self.slide.level_downsamples[best_level]
-        for tile_pyramid_model in self.tiles_pyramid_models:
-            if tile_pyramid_model["level"] == best_level:
-                # tile_pyramid_model["tiles_graphics_group"].setZValue(100)
-                tile_pyramid_model["tiles_graphics_group"].setVisible(True)
-                tile_pyramid_model["grid_graphics_group"].setVisible(self.grid_show)
-            else:
-                tile_pyramid_model["tiles_graphics_group"].setVisible(False)
-                tile_pyramid_model["grid_graphics_group"].setVisible(False)
-                # tile_pyramid_model["tiles_graphics_group"].setZValue(0)
+        self.leveled_graphics_group.update_visible_level(best_level)
+        self.leveled_graphics_grid.update_visible_level(best_level)
+        self.leveled_graphics_selection.update_visible_level(best_level)
+        # for tile_pyramid_model in self.tiles_pyramid_models:
+        # if tile_pyramid_model["level"] == best_level:
+        # tile_pyramid_model["tiles_graphics_group"].setZValue(100)
+        # tile_pyramid_model["tiles_graphics_group"].setVisible(True)
+        # tile_pyramid_model["grid_graphics_group"].setVisible(self.grid_show)
+        # else:
+        # tile_pyramid_model["tiles_graphics_group"].setVisible(False)
+        # tile_pyramid_model["grid_graphics_group"].setVisible(False)
+        # tile_pyramid_model["tiles_graphics_group"].setZValue(0)
         level_size = self.slide_helper.get_level_size_for_level(best_level)
         self.level_label.setText(
             "current level, downsample, size: {}, {:.4f}, ({}, {})".format(best_level, level_downsample, level_size[0],
@@ -262,16 +277,18 @@ class SlideViewer(QWidget):
             item = GraphicsTile(tile_rect, self.slide, level, downsample)
             tiles_graphics_group.addToGroup(item)
 
-        tiles_graphics_group.setVisible(False)
-        self.scene.addItem(tiles_graphics_group)
+        # tiles_graphics_group.setVisible(False)
+        # self.scene.addItem(tiles_graphics_group)
 
-        grid_graphics_group = QGraphicsItemGroup()
-        grid_graphics_group.setVisible(False)
+        self.leveled_graphics_group.add_item_to_level_group(level, tiles_graphics_group)
+
+        # grid_graphics_group = QGraphicsItemGroup()
+        # grid_graphics_group.setVisible(False)
 
         tile_pyramid_model = {
             "level": level,
-            "tiles_graphics_group": tiles_graphics_group,
-            "grid_graphics_group": grid_graphics_group,
+            # "tiles_graphics_group": tiles_graphics_group,
+            # "grid_graphics_group": grid_graphics_group,
             "selected_graphics_rect": None
         }
         return tile_pyramid_model
@@ -279,10 +296,10 @@ class SlideViewer(QWidget):
     def update_grid_size(self, grid_size):
         self.grid_size = grid_size
         for tile_pyramid_model in self.tiles_pyramid_models:
-            grid_graphics_group = tile_pyramid_model["grid_graphics_group"]
-            for item in grid_graphics_group.childItems():
-                grid_graphics_group.removeFromGroup(item)
-
+            # grid_graphics_group = tile_pyramid_model["grid_graphics_group"]
+            # for item in grid_graphics_group.childItems():
+            #     grid_graphics_group.removeFromGroup(item)
+            #
             level = tile_pyramid_model["level"]
             level_size = self.slide_helper.get_level_size_for_level(level)
             level_downsample = self.slide_helper.get_downsample_for_level(level)
@@ -291,17 +308,19 @@ class SlideViewer(QWidget):
 
             colors = [QColor(0, 255, 0, random.randint(0, 128)) for i in range(len(rects))]
             graphics_grid = GraphicsGrid(rects, colors, [0, 0, *level_size])
-            grid_graphics_group.addToGroup(graphics_grid)
+            # grid_graphics_group.addToGroup(graphics_grid)
+            self.leveled_graphics_grid.add_item_to_level_group(level, graphics_grid)
 
             # for rect in rects:
             #     graphics_rect = GraphicsRect(rect, QColor(0, 255, 0, 128))
             #     grid_graphics_group.addToGroup(graphics_rect)
 
-            grid_graphics_group.setVisible(False)
-            self.scene.addItem(grid_graphics_group)
+            # grid_graphics_group.setVisible(False)
+            # self.scene.addItem(grid_graphics_group)
 
         self.update_items_visibility_for_current_level()
 
     def toggle_grid_visibility(self, show):
         self.grid_show = show
+        self.leveled_graphics_grid.setVisible(show)
         self.update_items_visibility_for_current_level()
