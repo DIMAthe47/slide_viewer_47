@@ -33,7 +33,7 @@ class SlideViewerMenu(QMenu):
         dialog = QDialog()
         dialog.setWindowTitle("Grid size")
 
-        grid_size = self.slide_viewer.grid_size
+        grid_size = self.slide_viewer.slide_graphics.grid_size_0_level
         if not grid_size:
             grid_size = (224, 224)
 
@@ -60,10 +60,12 @@ class SlideViewerMenu(QMenu):
         button_box.rejected.connect(dialog.reject)
         res = dialog.exec()
         if res == QDialog.Accepted:
-            self.slide_viewer.update_grid_size((grid_w.value(), grid_h.value()))
+            self.slide_viewer.slide_graphics.update_grid_size_0_level((grid_w.value(), grid_h.value()))
+            # self.slide_viewer.view.update()
+            # self.slide_viewer.update_grid_size((grid_w.value(), grid_h.value()))
 
     def on_toggle_grid_action(self):
-        self.slide_viewer.toggle_grid_visibility(not self.slide_viewer.slide_graphics.grid_visible)
+        self.slide_viewer.slide_graphics.update_grid_visibility(not self.slide_viewer.slide_graphics.grid_visible)
 
     def get_available_formats(self):
         return [

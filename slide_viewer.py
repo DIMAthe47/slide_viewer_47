@@ -15,31 +15,6 @@ from graphics_tile import GraphicsTile
 from selected_graphics_rect import SelectedGraphicsRect
 from utils import slice_rect, rect_to_str, point_to_str, SlideHelper
 
-"""slide_wrapper not helper"""
-
-
-def build_tiles_level(level, tile_size, slide_helper: SlideHelper):
-    level_size = slide_helper.get_level_size_for_level(level)
-    tiles_rects = slice_rect(level_size, tile_size)
-    tiles_graphics_group = QGraphicsItemGroup()
-    downsample = slide_helper.get_downsample_for_level(level)
-    for tile_rect in tiles_rects:
-        item = GraphicsTile(tile_rect, slide_helper.get_slide(), level, downsample)
-        tiles_graphics_group.addToGroup(item)
-
-    return tiles_graphics_group
-
-
-def build_grid_level(level, grid_size, slide_helper: SlideHelper):
-    level_size = slide_helper.get_level_size_for_level(level)
-    level_downsample = slide_helper.get_downsample_for_level(level)
-    rect_size = grid_size[0] / level_downsample, grid_size[1] / level_downsample
-    rects = slice_rect(level_size, rect_size)
-
-    colors = [QColor(0, 255, 0, random.randint(0, 128)) for i in range(len(rects))]
-    graphics_grid = GraphicsGrid(rects, colors, [0, 0, *level_size])
-    return graphics_grid
-
 
 class SlideViewer(QWidget):
     eventSignal = pyqtSignal(PyQt5.QtCore.QEvent)
@@ -72,60 +47,30 @@ class SlideViewer(QWidget):
 
         self.view.setTransformationAnchor(QGraphicsView.NoAnchor)
         self.view.viewport().installEventFilter(self)
-        self.view.items().clear()
-        self.view.invalidateScene()
+        # self.view.items().clear()
+        # self.view.invalidateScene()
 
         self.rubber_band = QRubberBand(QRubberBand.Rectangle, self)
         self.mouse_press_view = QPoint()
-
-        self.grid_size = None
-        self.grid_show = False
 
     def load_slide(self, slide_path, preffered_rects_count=2000):
         self.slide_path = slide_path
         self.slide = openslide.OpenSlide(slide_path)
         self.slide_helper = SlideHelper(self.slide)
-        slide_w, slide_h = self.slide_helper.get_level_size_for_level(0)
-        t = ((slide_w * slide_h) / preffered_rects_count) ** 0.5
-        if t < 1000:
-            t = 1000
-        tile_size = (int(t), int(t))
-        self.tile_size = tile_size
-
-        self.scene.clear()
-        self.view.viewport().update()
-        self.scene.invalidate()
-
-        self.levels = self.slide_helper.get_levels()
 
         self.slide_graphics = SlideGraphicsGroup(self.slide_path, preffered_rects_count)
+        self.scene.clear()
         self.scene.addItem(self.slide_graphics)
 
-        self.leveled_graphics_group = LeveledGraphicsGroup(self.levels)
-        # self.scene.addItem(self.leveled_graphics_group)
-        self.leveled_graphics_grid = LeveledGraphicsGroup(self.levels)
-        # self.scene.addItem(self.leveled_graphics_grid)
-        self.leveled_graphics_selection = LeveledGraphicsGroup(self.levels)
-        # self.scene.addItem(self.leveled_graphics_selection)
-        self.init_tiles_levels()
-        self.init_grid_levels()
-
         self.init_scale()
-
-        self.selected_rect_downsample = 1
-        self.selected_rect_pos_0 = QPoint(0, 0)
-        self.selected_rect_size_0 = self.slide_helper.get_level_size_for_level(0)
 
     def init_scale(self):
         self.reset_transform()
         slide_rect_size = self.slide_helper.get_rect_for_level(self.slide_helper.get_max_level()).size()
         # ratio = 1.25
         ratio = 1
-        # view_width = self.view.width()
-        # view_height = self.view.height()
         view_width = self.view.viewport().width()
         view_height = self.view.viewport().height()
-        # view_width, view_height = (200, 200)
         zoom_width = view_width / (ratio * slide_rect_size.width())
         zoom_height = view_height / (ratio * slide_rect_size.height())
         zoom_ = min([zoom_width, zoom_height])
@@ -180,13 +125,13 @@ class SlideViewer(QWidget):
         pos_scene = self.view.mapToScene(self.rubber_band.pos() - self.view.pos())
         rect_scene = self.view.mapToScene(self.rubber_band.rect()).boundingRect()
         downsample = self.get_current_level_downsample()
-        self.selected_qrectf_level_downsample = self.get_current_level_downsample()
-        self.selected_qrectf_0_level = QRectF(pos_scene * downsample,
-                                              QSizeF(rect_scene.size() * downsample))
+        selected_qrectf_0_level = QRectF(pos_scene * downsample,
+                                         QSizeF(rect_scene.size() * downsample))
+        self.selected_rect_0_level = selected_qrectf_0_level.getRect()
 
     def update_selected_rect_view(self):
-        self.init_selected_rect_levels()
-        self.selected_rect_label.setText("selected rect (0-level): " + rect_to_str(self.selected_qrectf_0_level))
+        self.selected_rect_label.setText("selected rect (0-level): {}".format(self.selected_rect_0_level))
+        self.slide_graphics.update_selected_rect_0_level(self.selected_rect_0_level)
 
     def process_viewport_wheel_event(self, event: QWheelEvent):
         zoom_in = self.zoom_step
@@ -209,8 +154,7 @@ class SlideViewer(QWidget):
 
         new_mouse_pos_scene = self.view.mapToScene(mouse_pos)
         mouse_pos_delta = new_mouse_pos_scene - old_mouse_pos_scene
-        pos_delta = mouse_pos_delta
-        self.view.translate(pos_delta.x(), pos_delta.y())
+        self.view.translate(mouse_pos_delta.x(), mouse_pos_delta.y())
 
         if old_level_downsample != new_level_downsample:
             new_view_pos_scene = self.view.mapToScene(self.view.rect().topLeft())
@@ -226,6 +170,7 @@ class SlideViewer(QWidget):
             self.zoom_for_current_level = scale_
 
         self.update_items_visibility_for_current_level()
+        self.update_current_view_params_level()
 
     def get_current_level(self):
         return self.slide.get_best_level_for_downsample(1 / self.logical_zoom)
@@ -244,20 +189,14 @@ class SlideViewer(QWidget):
 
     def update_items_visibility_for_current_level(self):
         best_level = self.get_current_level()
-        level_downsample = self.slide.level_downsamples[best_level]
-
         self.slide_graphics.update_visible_level(best_level)
 
-        self.leveled_graphics_group.update_visible_level(best_level)
-        if self.grid_show:
-            self.leveled_graphics_grid.update_visible_level(best_level)
-        self.leveled_graphics_selection.update_visible_level(best_level)
+    def update_current_view_params_level(self):
+        best_level = self.get_current_level()
+        level_downsample = self.slide.level_downsamples[best_level]
         level_size = self.slide_helper.get_level_size_for_level(best_level)
         self.level_label.setText(
-            "current level, downsample, size: {}, {:.4f}, ({}, {})".format(best_level, level_downsample, level_size[0],
-                                                                           level_size[1]
-                                                                           ))
-        self.view.update()
+            "current level, downsample, size: {}, {:.4f}, ({}, {})".format(best_level, level_downsample, *level_size))
 
     def reset_transform(self):
         # print("view_pos before resetTransform:", self.view_pos_scene_str())
@@ -269,39 +208,3 @@ class SlideViewer(QWidget):
         # print("view_pos after resetTransform:", self.view_pos_scene_str())
         # print("dx after resetTransform:", self.view.transform().dx())
         # print("horizontalScrollBar after resetTransform:", self.view.horizontalScrollBar().value())
-
-    def init_tiles_levels(self):
-        for level in self.levels:
-            tiles_level = build_tiles_level(level, self.tile_size, self.slide_helper)
-            self.leveled_graphics_group.clear_level(level)
-            self.leveled_graphics_group.add_item_to_level_group(level, tiles_level)
-
-    def init_grid_levels(self):
-        for level in self.levels:
-            self.leveled_graphics_grid.clear_level(level)
-            if self.grid_size:
-                graphics_grid = build_grid_level(level, self.grid_size, self.slide_helper)
-                self.leveled_graphics_grid.add_item_to_level_group(level, graphics_grid)
-
-    def init_selected_rect_levels(self):
-        for level in self.levels:
-            downsample = self.slide_helper.get_downsample_for_level(level)
-            rect_for_level = QRectF(self.selected_qrectf_0_level.topLeft() / downsample,
-                                    self.selected_qrectf_0_level.size() / downsample)
-            selected_graphics_rect = SelectedGraphicsRect(rect_for_level)
-
-            self.leveled_graphics_selection.clear_level(level)
-            self.leveled_graphics_selection.add_item_to_level_group(level, selected_graphics_rect)
-
-    def update_grid_size(self, grid_size):
-        self.grid_size = grid_size
-        self.init_grid_levels()
-        self.update_items_visibility_for_current_level()
-
-        self.slide_graphics.update_grid_size_0_level(grid_size)
-
-    def toggle_grid_visibility(self, show):
-        self.grid_show = show
-        self.leveled_graphics_grid.setVisible(show)
-        self.update_items_visibility_for_current_level()
-        self.slide_graphics.update_grid_visibility(show)

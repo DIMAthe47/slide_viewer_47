@@ -12,6 +12,8 @@ from graphics_tile import GraphicsTile
 from selected_graphics_rect import SelectedGraphicsRect
 from utils import slice_rect, SlideHelper
 
+"""slide_wrapper not helper"""
+
 
 def build_tiles_level(level, tile_size, slide_helper: SlideHelper):
     level_size = slide_helper.get_level_size_for_level(level)
@@ -65,9 +67,10 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
         self.leveled_graphics_selection = LeveledGraphicsGroup(self.levels, self)
         self.leveled_groups = [self.leveled_graphics_group, self.leveled_graphics_grid, self.leveled_graphics_selection]
 
-        self.selected_rect_downsample = 1
-        self.selected_rect_pos_0 = QPoint(0, 0)
-        self.selected_rect_size_0 = self.slide_helper.get_level_size_for_level(0)
+        # self.selected_rect_downsample = 1
+        self.selected_rect_0_level = None
+        # self.selected_rect_pos_0 = QPoint(0, 0)
+        # self.selected_rect_size_0 = self.slide_helper.get_level_size_for_level(0)
         # self.selected_qrectf_0_level
 
         self.grid_size_0_level = None
@@ -101,8 +104,9 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
     def init_selected_rect_levels(self):
         for level in self.levels:
             downsample = self.slide_helper.get_downsample_for_level(level)
-            rect_for_level = QRectF(self.selected_qrectf_0_level.topLeft() / downsample,
-                                    self.selected_qrectf_0_level.size() / downsample)
+            selected_qrectf_0_level = QRectF(*self.selected_rect_0_level)
+            rect_for_level = QRectF(selected_qrectf_0_level.topLeft() / downsample,
+                                    selected_qrectf_0_level.size() / downsample)
             selected_graphics_rect = SelectedGraphicsRect(rect_for_level)
 
             self.leveled_graphics_selection.clear_level(level)
@@ -127,3 +131,7 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
     def update_grid_visibility(self, grid_visible):
         self.grid_visible = grid_visible
         self.leveled_graphics_grid.setVisible(self.grid_visible)
+
+    def update_selected_rect_0_level(self, selected_rect_0_level):
+        self.selected_rect_0_level = selected_rect_0_level
+        self.init_selected_rect_levels()
