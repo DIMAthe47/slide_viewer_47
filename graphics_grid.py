@@ -24,7 +24,8 @@ class GraphicsGrid(QGraphicsItem):
         # max_y_tuple = max(grid_rects, key=lambda x: x[1] + x[3])
         # max_y = max_y_tuple[1] + max_y_tuple[3]
         # self.bounding_rect = (min_x, min_y, max_x - min_x, max_y - min_y)
-        self.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
+
+        # self.setCacheMode(QGraphicsItem.DeviceCoordinateCache)
         self.color_key__qrectfs = {}
         for grid_rect, color in zip(grid_rects, colors):
             color_key = color.name(QColor.HexArgb)

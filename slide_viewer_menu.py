@@ -63,7 +63,7 @@ class SlideViewerMenu(QMenu):
             self.slide_viewer.update_grid_size((grid_w.value(), grid_h.value()))
 
     def on_toggle_grid_action(self):
-        self.slide_viewer.toggle_grid_visibility(not self.slide_viewer.grid_show)
+        self.slide_viewer.toggle_grid_visibility(not self.slide_viewer.slide_graphics.grid_visible)
 
     def get_available_formats(self):
         return [

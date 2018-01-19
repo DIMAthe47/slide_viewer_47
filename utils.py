@@ -63,3 +63,6 @@ class SlideHelper():
 
     def get_levels(self):
         return list(range(self.slide.level_count))
+
+    def get_slide(self):
+        return self.slide

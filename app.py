@@ -18,9 +18,6 @@ class SliderViewerMainWindow(QMainWindow):
         self.setWindowTitle('Slide viewer')
         # self.resize(500, 600)
         self.resize(200, 200)
-        # self.setGeometry()
-        # self.setFixedSize(500,600)
-        # self.setMinimumSize(500, 600)
         self.slide_viewer = SlideViewer(zoom_step=1.15)
         self.setCentralWidget(self.slide_viewer)
 
@@ -28,7 +25,6 @@ class SliderViewerMainWindow(QMainWindow):
         slide_viewer_menu = SlideViewerMenu(menuBar)
         slide_viewer_menu.set_slide_viewer(self.slide_viewer)
         menuBar.addMenu(slide_viewer_menu)
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

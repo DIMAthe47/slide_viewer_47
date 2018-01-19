@@ -10,8 +10,8 @@ import openslide
 
 
 class LeveledGraphicsGroup(QGraphicsItemGroup):
-    def __init__(self, levels: typing.List[int]):
-        super().__init__()
+    def __init__(self, levels: typing.List[int], parent=None):
+        super().__init__(parent)
         self.levels = levels
         self.level__group = {}
         for level in levels:
