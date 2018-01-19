@@ -39,6 +39,7 @@ class LeveledGraphicsGroup(QGraphicsItemGroup):
         group = self.level__group[level]
         for item in group.childItems():
             group.removeFromGroup(item)
+            group.scene().removeItem(item)
 
     def update_visible_level(self, visible_level):
         self.visible_level = visible_level
