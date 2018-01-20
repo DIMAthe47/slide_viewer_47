@@ -17,7 +17,7 @@ class SelectedGraphicsRect(QGraphicsItem):
     def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
               widget: typing.Optional[QWidget] = ...):
         painter.save()
-        pen=QPen(QColor(0,0,0,255))
+        pen = QPen(QColor(0, 0, 0, 255))
         pen.setWidth(5)
         painter.setPen(pen)
         painter.drawRect(self.qrectf)

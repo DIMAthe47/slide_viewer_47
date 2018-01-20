@@ -1,13 +1,10 @@
 import typing
 
-from PIL.ImageQt import ImageQt
 from PyQt5 import QtGui
 from PyQt5.QtCore import QRectF, QRect, Qt
-from PyQt5.QtGui import QPixmapCache, QColor, QBrush
+from PyQt5.QtGui import QColor, QBrush
 
-from PyQt5.QtWidgets import QGraphicsItem, QWidget, QGraphicsRectItem
-import openslide
-
+from PyQt5.QtWidgets import QGraphicsItem, QWidget
 
 class GraphicsGrid(QGraphicsItem):
     def __init__(self, grid_rects, colors, bounding_rect):

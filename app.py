@@ -16,11 +16,11 @@ class SliderViewerMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Slide viewer')
-        # self.resize(500, 600)
+        self.resize(500, 600)
         # self.resize(400, 400)
-        self.resize(300, 300)
+        # self.resize(300, 500)
         self.slide_viewer = SlideViewer()
-        self.slide_viewer.resize(200, 200)
+        # self.slide_viewer.resize(200, 200)
         self.setCentralWidget(self.slide_viewer)
 
         menuBar = self.menuBar()

@@ -1,15 +1,14 @@
 import random
-import typing
 
 import openslide
-from PyQt5.QtCore import QRectF, Qt, QPoint
+from PyQt5.QtCore import QRectF, Qt
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsItem
+from PyQt5.QtWidgets import QGraphicsItemGroup
 
 from graphics.leveled_graphics_group import LeveledGraphicsGroup
-from graphics_grid import GraphicsGrid
-from graphics_tile import GraphicsTile
-from selected_graphics_rect import SelectedGraphicsRect
+from graphics.graphics_grid import GraphicsGrid
+from graphics.graphics_tile import GraphicsTile
+from graphics.selected_graphics_rect import SelectedGraphicsRect
 from utils import slice_rect, SlideHelper
 
 """slide_wrapper not helper"""
