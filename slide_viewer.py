@@ -55,7 +55,13 @@ class SlideViewer(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-    def load_slide(self, slide_path, start_level=-1, start_image_rect=None, preffered_rects_count=2000, zoom_step=1.15):
+    """
+    If you want to start view frome some point at some level, specify <start_level> and <start_image_rect> params. 
+    start_image_rect : rect in dimensions of slide at level=start_level. If None - fits the whole size of slide
+    """
+
+    def load_slide(self, slide_path, start_level: int = -1, start_image_rect: QRectF = None, preffered_rects_count=2000,
+                   zoom_step=1.15):
         self.zoom_step = zoom_step
         self.slide_path = slide_path
         self.slide = openslide.OpenSlide(slide_path)
