@@ -1,4 +1,6 @@
 import sys
+
+from PyQt5.QtCore import QRectF
 from PyQt5.QtWidgets import QInputDialog, QDialog, QDialogButtonBox, QVBoxLayout, QFormLayout, QGroupBox, QLineEdit, \
     QHBoxLayout, QSpinBox
 
@@ -26,7 +28,9 @@ class SlideViewerMenu(QMenu):
     def on_load_slide(self):
         file_path = self.open_file_name_dialog()
         if file_path:
-            self.slide_viewer.load_slide(file_path)
+            rect = QRectF(1000, 1000, 1000, 1000)
+            level = 1
+            self.slide_viewer.load_slide(file_path, start_level=level, start_image_rect=rect)
             QPixmapCache.clear()
 
     def on_set_grid_action(self):

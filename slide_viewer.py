@@ -55,7 +55,7 @@ class SlideViewer(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
-    def load_slide(self, slide_path, preffered_rects_count=2000, zoom_step=1.15):
+    def load_slide(self, slide_path, start_level=-1, start_image_rect=None, preffered_rects_count=2000, zoom_step=1.15):
         self.zoom_step = zoom_step
         self.slide_path = slide_path
         self.slide = openslide.OpenSlide(slide_path)
@@ -67,45 +67,62 @@ class SlideViewer(QWidget):
         self.scene.clear()
         self.scene.addItem(self.slide_graphics)
 
-        self.current_level = self.slide_helper.get_max_level()
-        self.fit_in_view()
-        self.update_labels()
-
-    def fit_in_view(self):
+        if start_level == -1:
+            self.current_level = self.slide_helper.get_max_level()
+        else:
+            self.current_level = start_level
         self.slide_graphics.update_visible_level(self.current_level)
-        new_rect = self.slide_helper.get_rect_for_level(self.current_level)
-        self.scene.setSceneRect(new_rect)
-        margins = QMarginsF(200, 200, 200, 200)
-        self.view.fitInView(self.scene.sceneRect() + margins, Qt.KeepAspectRatio)
+        self.scene.setSceneRect(self.slide_helper.get_rect_for_level(self.current_level))
+
+        self.view.resetTransform()
+        if start_image_rect:
+            self.view.fitInView(start_image_rect, Qt.KeepAspectRatioByExpanding)
+        else:
+            start_margins = QMarginsF(200, 200, 200, 200)
+            start_image_rect = self.slide_helper.get_rect_for_level(self.current_level)
+            self.view.fitInView(start_image_rect + start_margins, Qt.KeepAspectRatio)
+
+        self.update_labels()
 
     def eventFilter(self, qobj: 'QObject', event: 'QEvent'):
         self.eventSignal.emit(event)
         if isinstance(event, QWheelEvent):
-            self.process_viewport_wheel_event(event)
+            return self.process_viewport_wheel_event(event)
             # we handle wheel event to prevent GraphicsView interpret it as scrolling
-            return True
         elif isinstance(event, QMouseEvent):
-            if event.button() == Qt.MiddleButton:
-                self.take_screenshot()
-            elif event.button() == Qt.LeftButton:
-                if event.type() == QEvent.MouseButtonPress:
-                    self.mouse_press_view = QPoint(event.pos())
-                    self.rubber_band.setGeometry(QRect(self.mouse_press_view, QSize()))
-                    self.rubber_band.show()
-                    return True
-                elif event.type() == QEvent.MouseButtonRelease:
-                    self.rubber_band.hide()
-                    self.remember_selected_rect_params()
-                    self.slide_graphics.update_selected_rect_0_level(self.selected_rect_0_level)
-                    self.update_labels()
-                    self.scene.invalidate()
-                    return True
-            elif event.type() == QEvent.MouseMove:
-                self.mouse_pos_scene_label.setText(
-                    "mouse pos scene: " + point_to_str(self.view.mapToScene(event.pos())))
-                if not self.mouse_press_view.isNull():
-                    self.rubber_band.setGeometry(QRect(self.mouse_press_view, event.pos()).normalized())
+            return self.process_mouse_event(event)
+        return False
+
+    def process_viewport_wheel_event(self, event: QWheelEvent):
+        zoom_in = self.zoom_step
+        zoom_out = 1 / zoom_in
+        zoom_ = zoom_in if event.angleDelta().y() > 0 else zoom_out
+        self.update_scale(event.pos(), zoom_)
+        event.accept()
+        return True
+
+    def process_mouse_event(self, event: QMouseEvent):
+        if event.button() == Qt.MiddleButton:
+            self.take_screenshot()
+        elif event.button() == Qt.LeftButton:
+            if event.type() == QEvent.MouseButtonPress:
+                self.mouse_press_view = QPoint(event.pos())
+                self.rubber_band.setGeometry(QRect(self.mouse_press_view, QSize()))
+                self.rubber_band.show()
                 return True
+            elif event.type() == QEvent.MouseButtonRelease:
+                self.rubber_band.hide()
+                self.remember_selected_rect_params()
+                self.slide_graphics.update_selected_rect_0_level(self.selected_rect_0_level)
+                self.update_labels()
+                self.scene.invalidate()
+                return True
+        elif event.type() == QEvent.MouseMove:
+            self.mouse_pos_scene_label.setText(
+                "mouse pos scene: " + point_to_str(self.view.mapToScene(event.pos())))
+            if not self.mouse_press_view.isNull():
+                self.rubber_band.setGeometry(QRect(self.mouse_press_view, event.pos()).normalized())
+            return True
 
         return False
 
@@ -115,29 +132,13 @@ class SlideViewer(QWidget):
         image.save("view_screenshot_image.png")
 
     def remember_selected_rect_params(self):
-        pos_scene = self.view.mapToScene(self.rubber_band.pos() - self.view.pos())
+        pos_scene = self.view.mapToScene(self.rubber_band.pos())
+        self.rubber_band.size()
         rect_scene = self.view.mapToScene(self.rubber_band.rect()).boundingRect()
         downsample = self.slide_helper.get_downsample_for_level(self.current_level)
         selected_qrectf_0_level = QRectF(pos_scene * downsample,
-                                         QSizeF(rect_scene.size() * downsample))
+                                         rect_scene.size() * downsample)
         self.selected_rect_0_level = selected_qrectf_0_level.getRect()
-
-    def process_viewport_wheel_event(self, event: QWheelEvent):
-        zoom_in = self.zoom_step
-        zoom_out = 1 / zoom_in
-        zoom_ = zoom_in if event.angleDelta().y() > 0 else zoom_out
-        self.update_scale(event.pos(), zoom_)
-        event.accept()
-
-    # def set_view_from_rect(self, rect_scene, visible_level):
-    # another way to adjust view - but scaling and translating will be not accurate
-    # self.view.fitInView(rect_scene, Qt.KeepAspectRatio)
-    # self.update_items_visibility_for_current_level()
-    #
-    # def update_from_rect_and_downsample(self, rect, downsample):
-    #     self.update_scene_rect_for_current_level()
-    #     if rect:
-    #         self.view.translate(rect.x(), rect.y())
 
     def update_scale(self, mouse_pos: QPoint, zoom):
         old_mouse_pos_scene = self.view.mapToScene(mouse_pos)
@@ -186,18 +187,12 @@ class SlideViewer(QWidget):
                                                                            *level_size))
         if self.selected_rect_0_level:
             self.selected_rect_label.setText(
-                "selected rect (0-level): ({:.2f},{:.2f})".format(*self.selected_rect_0_level))
+                "selected rect (0-level): ({:.2f},{:.2f},{:.2f},{:.2f})".format(*self.selected_rect_0_level))
 
     def reset_view_transform(self):
-        # print("view_pos before resetTransform:", self.view_pos_scene_str())
-        # print("dx before resetTransform:", self.view.transform().dx())
-        # print("horizontalScrollBar before resetTransform:", self.view.horizontalScrollBar().value())
         self.view.resetTransform()
         self.view.horizontalScrollBar().setValue(0)
         self.view.verticalScrollBar().setValue(0)
-        # print("view_pos after resetTransform:", self.view_pos_scene_str())
-        # print("dx after resetTransform:", self.view.transform().dx())
-        # print("horizontalScrollBar after resetTransform:", self.view.horizontalScrollBar().value())
 
     def get_current_view_scene_rect(self):
         return self.view.mapToScene(self.view.rect()).boundingRect()
