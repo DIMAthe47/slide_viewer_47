@@ -20,5 +20,4 @@ if __name__ == "__main__":
     slide_path = r'C:\Users\DIMA\PycharmProjects\slide_cbir_47\downloads\images\19403.svs'
     win.show()
     win.slide_viewer.load_slide(slide_path)
-    # win.slide_viewer.update_grid_size((224,224))
     sys.exit(app.exec_())

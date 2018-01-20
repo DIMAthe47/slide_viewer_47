@@ -1,5 +1,3 @@
-import sys
-
 from PyQt5.QtCore import QRectF
 from PyQt5.QtWidgets import QInputDialog, QDialog, QDialogButtonBox, QVBoxLayout, QFormLayout, QGroupBox, QLineEdit, \
     QHBoxLayout, QSpinBox
@@ -28,9 +26,8 @@ class SlideViewerMenu(QMenu):
     def on_load_slide(self):
         file_path = self.open_file_name_dialog()
         if file_path:
-            rect = QRectF(1000, 1000, 1000, 1000)
-            level = 1
-            self.slide_viewer.load_slide(file_path, start_level=level, start_image_rect=rect)
+            # self.slide_viewer.load_slide(file_path, start_level=1, start_image_rect=QRectF(1000, 1000, 1000, 1000))
+            self.slide_viewer.load_slide(file_path)
             QPixmapCache.clear()
 
     def on_set_grid_action(self):
@@ -65,8 +62,6 @@ class SlideViewerMenu(QMenu):
         res = dialog.exec()
         if res == QDialog.Accepted:
             self.slide_viewer.slide_graphics.update_grid_size_0_level((grid_w.value(), grid_h.value()))
-            # self.slide_viewer.view.update()
-            # self.slide_viewer.update_grid_size((grid_w.value(), grid_h.value()))
 
     def on_toggle_grid_action(self):
         self.slide_viewer.slide_graphics.update_grid_visibility(not self.slide_viewer.slide_graphics.grid_visible)
@@ -88,7 +83,6 @@ class SlideViewerMenu(QMenu):
 
     def open_file_name_dialog(self):
         options = QFileDialog.Options()
-        # options |= QFileDialog.NaDontUseNativeDialog
         file_ext_strings = ["*" + ext for ext in self.get_available_formats()]
         file_ext_string = " ".join(file_ext_strings)
         file_name, _ = QFileDialog.getOpenFileName(self, "Select whole-slide image to view", "",
