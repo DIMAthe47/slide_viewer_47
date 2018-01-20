@@ -1,7 +1,7 @@
 import sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QApplication
-from widgets.slide_viewer_main_window import SlideViewerMainWindow
+from slide_viewer_47.widgets.slide_viewer_main_window import SlideViewerMainWindow
 
 def excepthook(excType, excValue, tracebackobj):
     print(excType, excValue, tracebackobj)

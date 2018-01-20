@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow
 
-from widgets.slide_viewer import SlideViewer
-from widgets.slide_viewer_menu import SlideViewerMenu
+from slide_viewer_47.widgets.slide_viewer import SlideViewer
+from slide_viewer_47.widgets.slide_viewer_menu import SlideViewerMenu
 
 
 class SlideViewerMainWindow(QMainWindow):

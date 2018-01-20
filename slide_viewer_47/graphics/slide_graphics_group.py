@@ -5,11 +5,12 @@ from PyQt5.QtCore import QRectF, Qt
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QGraphicsItemGroup
 
-from graphics.leveled_graphics_group import LeveledGraphicsGroup
-from graphics.graphics_grid import GraphicsGrid
-from graphics.graphics_tile import GraphicsTile
-from graphics.selected_graphics_rect import SelectedGraphicsRect
-from utils import slice_rect, SlideHelper
+from slide_viewer_47.common.utils import slice_rect, SlideHelper
+from slide_viewer_47.graphics.graphics_grid import GraphicsGrid
+from slide_viewer_47.graphics.graphics_tile import GraphicsTile
+from slide_viewer_47.graphics.leveled_graphics_group import LeveledGraphicsGroup
+from slide_viewer_47.graphics.selected_graphics_rect import SelectedGraphicsRect
+
 
 def build_tiles_level(level, tile_size, slide_helper: SlideHelper):
     level_size = slide_helper.get_level_size(level)

@@ -1,11 +1,11 @@
 import PyQt5
 import openslide
-from PyQt5.QtCore import QPoint, Qt, QEvent, QRect, QSize, QRectF, QSizeF, pyqtSignal, QPointF, QMarginsF
-from PyQt5.QtGui import QWheelEvent, QMouseEvent, QColor, QImage, QPainter, QTransform
+from PyQt5.QtCore import QPoint, Qt, QEvent, QRect, QSize, QRectF, pyqtSignal, QMarginsF
+from PyQt5.QtGui import QWheelEvent, QMouseEvent, QImage, QPainter, QTransform
 from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QVBoxLayout, QLabel, QRubberBand
 
-from graphics.slide_graphics_group import SlideGraphicsGroup
-from utils import point_to_str, SlideHelper
+from slide_viewer_47.graphics.slide_graphics_group import SlideGraphicsGroup
+from slide_viewer_47.common.utils import point_to_str, SlideHelper
 
 
 def build_screenshot_image(scene: QGraphicsScene, scene_rect: QRectF, image_size: QSize) -> QImage:
