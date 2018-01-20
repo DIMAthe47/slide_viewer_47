@@ -11,11 +11,8 @@ from graphics.graphics_tile import GraphicsTile
 from graphics.selected_graphics_rect import SelectedGraphicsRect
 from utils import slice_rect, SlideHelper
 
-"""slide_wrapper not helper"""
-
-
 def build_tiles_level(level, tile_size, slide_helper: SlideHelper):
-    level_size = slide_helper.get_level_size_for_level(level)
+    level_size = slide_helper.get_level_size(level)
     tiles_rects = slice_rect(level_size, tile_size)
     tiles_graphics_group = QGraphicsItemGroup()
     downsample = slide_helper.get_downsample_for_level(level)
@@ -27,7 +24,7 @@ def build_tiles_level(level, tile_size, slide_helper: SlideHelper):
 
 
 def build_grid_level(level, grid_size_0_level, slide_helper: SlideHelper):
-    level_size = slide_helper.get_level_size_for_level(level)
+    level_size = slide_helper.get_level_size(level)
     level_downsample = slide_helper.get_downsample_for_level(level)
     rect_size = grid_size_0_level[0] / level_downsample, grid_size_0_level[1] / level_downsample
     rects = slice_rect(level_size, rect_size)
@@ -38,7 +35,7 @@ def build_grid_level(level, grid_size_0_level, slide_helper: SlideHelper):
 
 
 def build_grid_level_from_rects(level, rects, colors, slide_helper: SlideHelper):
-    level_size = slide_helper.get_level_size_for_level(level)
+    level_size = slide_helper.get_level_size(level)
     graphics_grid = GraphicsGrid(rects, colors, [0, 0, *level_size])
     return graphics_grid
 
@@ -50,7 +47,7 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
         self.slide = openslide.OpenSlide(slide_path)
         self.slide_helper = SlideHelper(self.slide)
 
-        slide_w, slide_h = self.slide_helper.get_level_size_for_level(0)
+        slide_w, slide_h = self.slide_helper.get_level_size(0)
         t = ((slide_w * slide_h) / preffered_rects_count) ** 0.5
         if t < 1000:
             t = 1000
@@ -66,11 +63,7 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
         self.leveled_graphics_selection = LeveledGraphicsGroup(self.levels, self)
         self.leveled_groups = [self.leveled_graphics_group, self.leveled_graphics_grid, self.leveled_graphics_selection]
 
-        # self.selected_rect_downsample = 1
         self.selected_rect_0_level = None
-        # self.selected_rect_pos_0 = QPoint(0, 0)
-        # self.selected_rect_size_0 = self.slide_helper.get_level_size_for_level(0)
-        # self.selected_qrectf_0_level
 
         self.grid_size_0_level = None
         self.grid_rects_0_level = None
@@ -79,7 +72,6 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
 
         self.init_tiles_levels()
         self.init_grid_levels()
-        # self.init_selected_rect_levels()
 
     def init_tiles_levels(self):
         for level in self.levels:

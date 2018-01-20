@@ -179,15 +179,15 @@ class SlideViewer(QWidget):
         scene_width = self.scene.sceneRect().size().width()
         candidates = [0]
         for level in self.slide_helper.get_levels():
-            w, h = self.slide.level_dimensions[level]
+            w, h = self.slide_helper.get_level_size(level)
             if scene_width * scale <= w:
                 candidates.append(level)
         best_level = max(candidates)
         return best_level
 
     def update_labels(self):
-        level_downsample = self.slide.level_downsamples[self.current_level]
-        level_size = self.slide_helper.get_level_size_for_level(self.current_level)
+        level_downsample = self.slide_helper.get_downsample_for_level(self.current_level)
+        level_size = self.slide_helper.get_level_size(self.current_level)
         self.level_label.setText(
             "current level, downsample, size: {}, {:.4f}, ({}, {})".format(self.current_level, level_downsample,
                                                                            *level_size))
