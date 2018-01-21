@@ -1,5 +1,7 @@
 import typing
 
+from PIL import Image
+import PIL
 from PyQt5.QtCore import QRectF
 from PyQt5.QtWidgets import QInputDialog, QDialog, QDialogButtonBox, QVBoxLayout, QFormLayout, QGroupBox, QLineEdit, \
     QHBoxLayout, QSpinBox, QWidget
@@ -41,8 +43,8 @@ class SlideViewerMenu(QMenu):
     def on_load_slide(self):
         file_path = self.open_file_name_dialog()
         if file_path:
-            self.slide_viewer.load_slide(file_path, start_level=1, start_image_rect=QRectF(1000, 1000, 1000, 1000))
-            # self.slide_viewer.load_slide(file_path)
+            # self.slide_viewer.load_slide(file_path, start_level=1, start_image_rect=QRectF(1000, 1000, 1000, 1000))
+            self.slide_viewer.load_slide(file_path)
             QPixmapCache.clear()
 
     def on_set_grid_action(self):
@@ -104,7 +106,7 @@ class SlideViewerMenu(QMenu):
         button_box.rejected.connect(dialog.reject)
         res = dialog.exec()
         if res == QDialog.Accepted:
-            slide_path = self.slide_viewer.slide_path
+            slide_path = self.slide_viewer.slide_helper.get_slide_path()
             qrectf = QRectF(x.value(), y.value(), width.value(), height.value())
             self.slide_viewer.load_slide(slide_path, level.value(), qrectf)
 
@@ -113,21 +115,33 @@ class SlideViewerMenu(QMenu):
             not self.slide_viewer.slide_graphics.grid_visible)
 
     def get_available_formats(self):
-        return [
-            ".svs",
-            ".vms",
-            ".vmu",
-            ".ndpi",
-            ".scn",
-            ".mrx",
-            ".tiff",
-            ".svslide",
-            ".tif",
-            ".bif",
-            ".mrxs",
-            ".bif"]
+        whole_slide_formats = [
+            "svs",
+            "vms",
+            "vmu",
+            "ndpi",
+            "scn",
+            "mrx",
+            "tiff",
+            "svslide",
+            "tif",
+            "bif",
+            "mrxs",
+            "bif"]
+        pillow_formats = [
+            'bmp', 'bufr', 'cur', 'dcx', 'fits', 'fl', 'fpx', 'gbr',
+            'gd', 'gif', 'grib', 'hdf5', 'ico', 'im', 'imt', 'iptc',
+            'jpeg', 'jpg', 'jpe', 'mcidas', 'mic', 'mpeg', 'msp',
+            'pcd', 'pcx', 'pixar', 'png', 'ppm', 'psd', 'sgi',
+            'spider', 'tga', 'tiff', 'wal', 'wmf', 'xbm', 'xpm',
+            'xv'
+        ]
+        available_formats = [*whole_slide_formats, *pillow_formats]
+        available_extensions = ["." + available_format for available_format in available_formats]
+        return available_extensions
 
     def open_file_name_dialog(self):
+        # print(tuple([e[1:] for e in PIL.Image.EXTENSION]))
         options = QFileDialog.Options()
         file_ext_strings = ["*" + ext for ext in self.get_available_formats()]
         file_ext_string = " ".join(file_ext_strings)

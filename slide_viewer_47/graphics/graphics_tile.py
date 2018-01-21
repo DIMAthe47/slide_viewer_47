@@ -8,7 +8,6 @@ from PyQt5.QtGui import QPixmapCache
 from PyQt5.QtWidgets import QGraphicsItem, QWidget
 import openslide
 
-
 class GraphicsTile(QGraphicsItem):
     def __init__(self, x_y_w_h, slide: openslide.OpenSlide, level, downsample):
         super().__init__()

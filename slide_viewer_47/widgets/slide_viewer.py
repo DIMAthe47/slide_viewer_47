@@ -8,12 +8,14 @@ from slide_viewer_47.graphics.slide_graphics_group import SlideGraphicsGroup
 from slide_viewer_47.common.utils import point_to_str, SlideHelper
 
 
-def build_screenshot_image(scene: QGraphicsScene, scene_rect: QRectF, image_size: QSize) -> QImage:
+def build_screenshot_image(scene: QGraphicsScene, image_size: QSize, scene_rect: QRectF = None) -> QImage:
     # pixmap = self.view.viewport().grab()
     # pixmap.save("view_screenshot.png")
     image = QImage(image_size, QImage.Format_RGBA8888)
     painter = QPainter(image)
     image.fill(painter.background().color())
+    if not scene_rect:
+        scene_rect = scene.sceneRect()
     scene.render(painter, QRectF(image.rect()), scene_rect)
     painter.end()
     return image
@@ -69,13 +71,14 @@ class SlideViewer(QWidget):
     def load_slide(self, slide_path, start_level: int = -1, start_image_rect: QRectF = None, preffered_rects_count=2000,
                    zoom_step=1.15):
         self.zoom_step = zoom_step
-        self.slide_path = slide_path
-        self.slide = openslide.OpenSlide(slide_path)
-        self.slide_helper = SlideHelper(self.slide)
+        # self.slide_path = slide_path
+        # self.slide = openslide.OpenSlide(slide_path)
+        # self.slide_helper = SlideHelper(self.slide)
+        self.slide_helper = SlideHelper(slide_path)
 
         self.selected_rect_0_level = None
 
-        self.slide_graphics = SlideGraphicsGroup(self.slide_path, preffered_rects_count)
+        self.slide_graphics = SlideGraphicsGroup(self.slide_helper.get_slide_path(), preffered_rects_count)
         self.scene.clear()
         self.scene.addItem(self.slide_graphics)
 
@@ -156,7 +159,7 @@ class SlideViewer(QWidget):
 
     def take_screenshot(self):
         scene_rect = self.view.mapToScene(self.view.viewport().rect()).boundingRect()
-        image = build_screenshot_image(self.scene, scene_rect, self.view.viewport().size())
+        image = build_screenshot_image(self.scene, self.view.viewport().size(), scene_rect)
         image.save("view_screenshot_image.png")
 
     def remember_selected_rect_params(self):

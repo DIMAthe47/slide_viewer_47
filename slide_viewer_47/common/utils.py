@@ -44,8 +44,19 @@ def point_to_str(point: QPoint):
 
 
 class SlideHelper():
-    def __init__(self, slide: openslide.OpenSlide):
-        self.slide = slide
+    # def __init__(self, slide: openslide.OpenSlide):
+    #     self.slide = slide
+
+    def __init__(self, slide_path: str):
+        self.slide_path = slide_path
+        self.slide = openslide.open_slide(slide_path)
+        # self.slide = slide
+
+    def get_slide_path(self):
+        return self.slide_path
+
+    def get_slide(self):
+        return self.slide
 
     def get_downsample_for_level(self, level):
         return self.slide.level_downsamples[level]
@@ -69,5 +80,3 @@ class SlideHelper():
 
     def get_best_level_for_downsample(self, downsample):
         return self.slide.get_best_level_for_downsample(downsample)
-
-

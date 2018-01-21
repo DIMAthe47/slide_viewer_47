@@ -44,9 +44,9 @@ def build_grid_level_from_rects(level, rects, colors, slide_helper: SlideHelper)
 class SlideGraphicsGroup(QGraphicsItemGroup):
     def __init__(self, slide_path, preffered_rects_count=2000):
         super().__init__()
-        self.slide_path = slide_path
-        self.slide = openslide.OpenSlide(slide_path)
-        self.slide_helper = SlideHelper(self.slide)
+        # self.slide_path = slide_path
+        # self.slide = openslide.OpenSlide(slide_path)
+        self.slide_helper = SlideHelper(slide_path)
 
         slide_w, slide_h = self.slide_helper.get_level_size(0)
         t = ((slide_w * slide_h) / preffered_rects_count) ** 0.5
@@ -104,8 +104,9 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
             self.leveled_graphics_selection.clear_level(level)
             self.leveled_graphics_selection.add_item_to_level_group(level, selected_graphics_rect)
 
-
     def update_visible_level(self, visible_level):
+        if not visible_level or visible_level == -1:
+            visible_level = max(self.levels)
         for leveled_group in self.leveled_groups:
             leveled_group.update_visible_level(visible_level)
 
