@@ -1,7 +1,7 @@
 import PyQt5
 import openslide
 from PyQt5.QtCore import QPoint, Qt, QEvent, QRect, QSize, QRectF, pyqtSignal, QMarginsF
-from PyQt5.QtGui import QWheelEvent, QMouseEvent, QImage, QPainter, QTransform
+from PyQt5.QtGui import QWheelEvent, QMouseEvent, QImage, QPainter, QTransform, QResizeEvent, QPaintEvent
 from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QVBoxLayout, QLabel, QRubberBand
 
 from slide_viewer_47.graphics.slide_graphics_group import SlideGraphicsGroup
@@ -38,6 +38,9 @@ class SlideViewer(QWidget):
         self.rubber_band = QRubberBand(QRubberBand.Rectangle, self)
         self.mouse_press_view = QPoint()
 
+        self.view.horizontalScrollBar().sliderMoved.connect(self.update_labels)
+        self.view.verticalScrollBar().sliderMoved.connect(self.update_labels)
+
     def init_labels(self):
         self.level_label = QLabel()
         self.level_label.setWordWrap(True)
@@ -45,13 +48,16 @@ class SlideViewer(QWidget):
         self.selected_rect_label.setWordWrap(True)
         self.mouse_pos_scene_label = QLabel()
         self.mouse_pos_scene_label.setWordWrap(True)
+        self.view_rect_scene_label = QLabel()
+        self.view_rect_scene_label.setWordWrap(True)
 
     def init_layout(self):
         layout = QVBoxLayout(self)
         layout.addWidget(self.view)
         layout.addWidget(self.level_label)
         layout.addWidget(self.mouse_pos_scene_label)
-        layout.addWidget(self.selected_rect_label)
+        # layout.addWidget(self.selected_rect_label)
+        layout.addWidget(self.view_rect_scene_label)
         layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
@@ -73,26 +79,40 @@ class SlideViewer(QWidget):
         self.scene.clear()
         self.scene.addItem(self.slide_graphics)
 
-        if start_level == -1:
+        if start_level == -1 or start_level is None:
             self.current_level = self.slide_helper.get_max_level()
         else:
             self.current_level = start_level
         self.slide_graphics.update_visible_level(self.current_level)
         self.scene.setSceneRect(self.slide_helper.get_rect_for_level(self.current_level))
 
-        self.view.resetTransform()
-        if start_image_rect:
-            self.view.fitInView(start_image_rect, Qt.KeepAspectRatioByExpanding)
-        else:
-            start_margins = QMarginsF(200, 200, 200, 200)
-            start_image_rect = self.slide_helper.get_rect_for_level(self.current_level)
-            self.view.fitInView(start_image_rect + start_margins, Qt.KeepAspectRatio)
+        def scale_initializer_deffered_function():
+            self.view.resetTransform()
+            # print("size when loading: ", self.view.viewport().size())
+            if start_image_rect:
+                self.view.fitInView(start_image_rect, Qt.KeepAspectRatioByExpanding)
+                # self.view.fitInView(start_image_rect, Qt.KeepAspectRatio)
+                # print("after fit: ", self.current_level, self.get_current_view_scene_rect())
+            else:
+                start_margins = QMarginsF(200, 200, 200, 200)
+                start_image_rect_ = self.slide_helper.get_rect_for_level(self.current_level)
+                self.view.fitInView(start_image_rect_ + start_margins, Qt.KeepAspectRatio)
 
-        self.update_labels()
+            self.update_labels()
 
-    def eventFilter(self, qobj: 'QObject', event: 'QEvent'):
+        self.scale_initializer_deffered_function = scale_initializer_deffered_function
+
+    def eventFilter(self, qobj: 'QObject', event: QEvent):
         self.eventSignal.emit(event)
-        if isinstance(event, QWheelEvent):
+        # print("size when event: ", event, event.type(), self.view.viewport().size())
+        if isinstance(event, QPaintEvent):
+            """
+            we need it deffered because fitInView logic depends on current viewport size. Expecting at this point widget is finally resized before being shown at first
+            """
+            if self.scale_initializer_deffered_function:
+                self.scale_initializer_deffered_function()
+                self.scale_initializer_deffered_function = None
+        elif isinstance(event, QWheelEvent):
             return self.process_viewport_wheel_event(event)
             # we handle wheel event to prevent GraphicsView interpret it as scrolling
         elif isinstance(event, QMouseEvent):
@@ -100,6 +120,7 @@ class SlideViewer(QWidget):
         return False
 
     def process_viewport_wheel_event(self, event: QWheelEvent):
+        # print("size when wheeling: ", self.view.viewport().size())
         zoom_in = self.zoom_step
         zoom_out = 1 / zoom_in
         zoom_ = zoom_in if event.angleDelta().y() > 0 else zoom_out
@@ -109,7 +130,8 @@ class SlideViewer(QWidget):
 
     def process_mouse_event(self, event: QMouseEvent):
         if event.button() == Qt.MiddleButton:
-            self.take_screenshot()
+            self.update_scale(QPoint(), 1.15)
+            # self.take_screenshot()
         elif event.button() == Qt.LeftButton:
             if event.type() == QEvent.MouseButtonPress:
                 self.mouse_press_view = QPoint(event.pos())
@@ -191,6 +213,8 @@ class SlideViewer(QWidget):
         self.level_label.setText(
             "current level, downsample, size: {}, {:.4f}, ({}, {})".format(self.current_level, level_downsample,
                                                                            *level_size))
+        self.view_rect_scene_label.setText(
+            "view_rect_scene: ({:.2f},{:.2f},{:.2f},{:.2f})".format(*self.get_current_view_scene_rect().getRect()))
         if self.selected_rect_0_level:
             self.selected_rect_label.setText(
                 "selected rect (0-level): ({:.2f},{:.2f},{:.2f},{:.2f})".format(*self.selected_rect_0_level))
@@ -201,7 +225,7 @@ class SlideViewer(QWidget):
         self.view.verticalScrollBar().setValue(0)
 
     def get_current_view_scene_rect(self):
-        return self.view.mapToScene(self.view.rect()).boundingRect()
+        return self.view.mapToScene(self.view.viewport().rect()).boundingRect()
 
     def get_current_view_scale(self):
         scale = self.view.transform().m11()
