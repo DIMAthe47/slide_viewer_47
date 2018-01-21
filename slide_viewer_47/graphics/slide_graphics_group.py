@@ -105,7 +105,7 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
             self.leveled_graphics_selection.add_item_to_level_group(level, selected_graphics_rect)
 
     def update_visible_level(self, visible_level):
-        if not visible_level or visible_level == -1:
+        if visible_level == None or visible_level == -1:
             visible_level = max(self.levels)
         for leveled_group in self.leveled_groups:
             leveled_group.update_visible_level(visible_level)
