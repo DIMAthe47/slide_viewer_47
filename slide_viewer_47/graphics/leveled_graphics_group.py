@@ -1,12 +1,22 @@
 import typing
 
 from PIL.ImageQt import ImageQt
-from PyQt5 import QtGui
+from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import QRectF, QRect, Qt
 from PyQt5.QtGui import QPixmapCache, QColor, QBrush
 
 from PyQt5.QtWidgets import QGraphicsItem, QWidget, QGraphicsRectItem, QGraphicsItemGroup
 import openslide
+
+
+class MyGraphicsGroup(QGraphicsItemGroup):
+
+    def __init__(self, parent: typing.Optional['QGraphicsItem'] = None) -> None:
+        super().__init__(parent)
+        # self.setFlag(QGraphicsItem.ItemContainsChildrenInShape, True)
+
+    def boundingRect(self) -> QRectF:
+        return QRectF()
 
 
 class LeveledGraphicsGroup(QGraphicsItemGroup):
@@ -15,18 +25,26 @@ class LeveledGraphicsGroup(QGraphicsItemGroup):
         self.levels = levels
         self.level__group = {}
         for level in levels:
-            group = QGraphicsItemGroup(self)
+            # group = QGraphicsItemGroup(self)
+            group = MyGraphicsGroup(self)
             group.setVisible(False)
+            group.setOpacity(0.0)
             self.level__group[level] = group
         self.visible_level = None
         self.setAcceptedMouseButtons(Qt.NoButton)
         self.setAcceptHoverEvents(False)
 
+        # self.setFlag(QGraphicsItem.ItemHasNoContents, True)
+        # self.setFlag(QGraphicsItem.ItemContainsChildrenInShape, True)
+        self.setFlag(QGraphicsItem.ItemClipsChildrenToShape, True)
+
     def boundingRect(self):
-        bounding_rect = QRectF()
+        # bounding_rect = QRectF()
         if self.visible_level:
             return self.level__group[self.visible_level].boundingRect()
-        return bounding_rect
+        else:
+            return QRectF()
+        # return bounding_rect
 
     def add_item_to_level_group(self, level, item: QGraphicsItem):
         self.level__group[level].addToGroup(item)
@@ -46,3 +64,4 @@ class LeveledGraphicsGroup(QGraphicsItemGroup):
         for level in self.levels:
             group = self.level__group[level]
             group.setVisible(level == visible_level)
+            group.setOpacity(level == visible_level)

@@ -1,21 +1,23 @@
 import random
+import typing
+from PyQt5 import QtCore
 
 import openslide
 from PyQt5.QtCore import QRectF, Qt
 from PyQt5.QtGui import QColor
-from PyQt5.QtWidgets import QGraphicsItemGroup
+from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsItem, QGraphicsScene
 
 from slide_viewer_47.common.utils import slice_rect, SlideHelper
 from slide_viewer_47.graphics.graphics_grid import GraphicsGrid
 from slide_viewer_47.graphics.graphics_tile import GraphicsTile
-from slide_viewer_47.graphics.leveled_graphics_group import LeveledGraphicsGroup
+from slide_viewer_47.graphics.leveled_graphics_group import LeveledGraphicsGroup, MyGraphicsGroup
 from slide_viewer_47.graphics.selected_graphics_rect import SelectedGraphicsRect
 
 
 def build_tiles_level(level, tile_size, slide_helper: SlideHelper):
     level_size = slide_helper.get_level_size(level)
     tiles_rects = slice_rect(level_size, tile_size)
-    tiles_graphics_group = QGraphicsItemGroup()
+    tiles_graphics_group = MyGraphicsGroup()
     downsample = slide_helper.get_downsample_for_level(level)
     for tile_rect in tiles_rects:
         item = GraphicsTile(tile_rect, slide_helper.get_slide(), level, downsample)
@@ -73,6 +75,13 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
 
         self.init_tiles_levels()
         self.init_grid_levels()
+
+        # self.setFlag(QGraphicsItem.ItemHasNoContents, True)
+        # self.setFlag(QGraphicsItem.ItemContainsChildrenInShape, True)
+        self.setFlag(QGraphicsItem.ItemClipsToShape, True)
+
+    def boundingRect(self) -> QRectF:
+        return self.leveled_graphics_group.boundingRect()
 
     def init_tiles_levels(self):
         for level in self.levels:

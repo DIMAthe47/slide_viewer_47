@@ -1,25 +1,59 @@
+import typing
+from PyQt5 import QtCore, QtGui
+
 import PyQt5
 import openslide
-from PyQt5.QtCore import QPoint, Qt, QEvent, QRect, QSize, QRectF, pyqtSignal, QMarginsF
+from PyQt5.QtCore import QPoint, Qt, QEvent, QRect, QSize, QRectF, pyqtSignal, QMarginsF, QSizeF, QPointF
 from PyQt5.QtGui import QWheelEvent, QMouseEvent, QImage, QPainter, QTransform, QResizeEvent, QPaintEvent
-from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QVBoxLayout, QLabel, QRubberBand
+from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QVBoxLayout, QLabel, QRubberBand, QGraphicsItem
 
+from slide_viewer_47.graphics.graphics_tile import GraphicsTile
 from slide_viewer_47.graphics.slide_graphics_group import SlideGraphicsGroup
 from slide_viewer_47.common.utils import point_to_str, SlideHelper
 
 
-def build_screenshot_image(scene: QGraphicsScene, image_size: QSize, scene_rect: QRectF = None) -> QImage:
+def build_screenshot_image(scene: QGraphicsScene, image_size: QSize, scene_rect: QRectF = QRectF()) -> QImage:
     # pixmap = self.view.viewport().grab()
     # pixmap.save("view_screenshot.png")
     image = QImage(image_size, QImage.Format_RGBA8888)
     painter = QPainter(image)
+    # painter.setClipping(True)
+    # painter.setClipRect(QRect(QPoint(0, 0), image_size))
     image.fill(painter.background().color())
-    if not scene_rect:
-        scene_rect = scene.sceneRect()
-    scene.render(painter, QRectF(image.rect()), scene_rect)
+    # if not scene_rect:
+    #     scene_rect = scene.sceneRect()
+    # scene.setSceneRect(scene_rect)
+    items1 = scene.items(scene_rect, Qt.IntersectsItemBoundingRect)
+    all_items = scene.items()
+    # for item in all_items:
+    #     if isinstance(item, GraphicsTile):
+    #         item.setVisible(False)
+    # for item in items1:
+    #     item.setVisible(True)
+    print(items1)
+    items2 = scene.items(scene_rect, Qt.IntersectsItemBoundingRect)
+    print(items2)
+    top_level_items = [item.topLevelItem() for item in items1]
+    print("before render==========================================")
+    rendered_size = scene_rect.size().scaled(QSizeF(image_size), Qt.KeepAspectRatio)
+    dsize = QSizeF(image_size) - rendered_size
+    top_left = QPointF(dsize.width() / 2, dsize.height() / 2)
+    scene.render(painter, QRectF(top_left, rendered_size), scene_rect)
     painter.end()
     return image
 
+
+class MyScene(QGraphicsScene):
+
+    def __init__(self, parent: typing.Optional[QtCore.QObject] = None) -> None:
+        super().__init__(parent)
+
+    # def items(self, rect: QtCore.QRectF, mode: QtCore.Qt.ItemSelectionMode = ..., order: QtCore.Qt.SortOrder = ...,
+    #           deviceTransform: QtGui.QTransform = ...) -> typing.List[QGraphicsItem]:
+    #     return super().items(rect, mode, order, deviceTransform)
+
+
+#
 
 class SlideViewer(QWidget):
     eventSignal = pyqtSignal(PyQt5.QtCore.QEvent)
@@ -31,7 +65,7 @@ class SlideViewer(QWidget):
         self.init_layout()
 
     def init_view(self):
-        self.scene = QGraphicsScene()
+        self.scene = MyScene()
         self.view = QGraphicsView()
         self.view.setScene(self.scene)
         self.view.setTransformationAnchor(QGraphicsView.NoAnchor)

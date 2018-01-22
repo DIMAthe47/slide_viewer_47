@@ -2,14 +2,14 @@ import typing
 
 from PIL import Image
 import PIL
-from PyQt5.QtCore import QRectF
+from PyQt5.QtCore import QRectF, QSize
 from PyQt5.QtWidgets import QInputDialog, QDialog, QDialogButtonBox, QVBoxLayout, QFormLayout, QGroupBox, QLineEdit, \
     QHBoxLayout, QSpinBox, QWidget
 
 from PyQt5.QtGui import QPixmapCache
 from PyQt5.QtWidgets import QMenuBar, QAction, QFileDialog, QMenu
 
-from slide_viewer_47.widgets.slide_viewer import SlideViewer
+from slide_viewer_47.widgets.slide_viewer import SlideViewer, build_screenshot_image
 
 
 class MySpinBox(QSpinBox):
@@ -26,7 +26,7 @@ class SlideViewerMenu(QMenu):
         self.loadAction = QAction("&load", parent)
         self.addAction(self.loadAction)
         self.loadAction.triggered.connect(self.on_load_slide)
-        self.grid_action = QAction("set grid &size", parent)
+        self.grid_action = QAction("set gri&d size", parent)
         self.addAction(self.grid_action)
         self.grid_action.triggered.connect(self.on_set_grid_action)
         self.toggle_grid_action = QAction("&toggle grid", parent)
@@ -35,6 +35,9 @@ class SlideViewerMenu(QMenu):
         self.go_to_action = QAction("&go to", parent)
         self.go_to_action.triggered.connect(self.on_go_to_action)
         self.addAction(self.go_to_action)
+        self.take_screenshot_action = QAction("&screenshot", parent)
+        self.take_screenshot_action.triggered.connect(self.on_take_screenshot_action)
+        self.addAction(self.take_screenshot_action)
         self.slide_viewer: SlideViewer = None
 
     def set_slide_viewer(self, slide_viewer: SlideViewer):
@@ -109,6 +112,33 @@ class SlideViewerMenu(QMenu):
             slide_path = self.slide_viewer.slide_helper.get_slide_path()
             qrectf = QRectF(x.value(), y.value(), width.value(), height.value())
             self.slide_viewer.load_slide(slide_path, level.value(), qrectf)
+
+    def on_take_screenshot_action(self):
+        dialog = QDialog()
+        dialog.setWindowTitle("Screenshot")
+
+        width = MySpinBox(1000)
+        height = MySpinBox(1000)
+        filepath = QLineEdit("screenshot_from_menu.jpg")
+
+        form_layout = QFormLayout()
+        form_layout.addRow("width:", width)
+        form_layout.addRow("height:", height)
+        form_layout.addRow("filepath:", filepath)
+
+        main_layout = QVBoxLayout()
+        main_layout.addLayout(form_layout)
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, dialog)
+        main_layout.addWidget(button_box)
+        dialog.setLayout(main_layout)
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        res = dialog.exec()
+        if res == QDialog.Accepted:
+            image = build_screenshot_image(self.slide_viewer.scene, QSize(width.value(), height.value()),
+                                           self.slide_viewer.get_current_view_scene_rect())
+            self.slide_viewer.scene.views()
+            image.save(filepath.text())
 
     def on_toggle_grid_action(self):
         self.slide_viewer.slide_graphics.update_grid_visibility(
