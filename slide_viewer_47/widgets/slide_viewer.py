@@ -145,7 +145,6 @@ class SlideViewer(QWidget):
 
     def remember_selected_rect_params(self):
         pos_scene = self.view.mapToScene(self.rubber_band.pos())
-        self.rubber_band.size()
         rect_scene = self.view.mapToScene(self.rubber_band.rect()).boundingRect()
         downsample = self.slide_helper.get_downsample_for_level(self.current_level)
         selected_qrectf_0_level = QRectF(pos_scene * downsample,
@@ -169,12 +168,12 @@ class SlideViewer(QWidget):
         new_view_scene_rect = QRectF(new_view_scene_rect_top_left,
                                      old_view_scene_rect.size() * level_scale_delta / zoom)
 
-        new_rect = self.slide_helper.get_rect_for_level(new_level)
-        self.scene.setSceneRect(new_rect)
-
         new_scale = self.get_current_view_scale() * zoom * new_level_downsample / old_level_downsample
         transform = QTransform().scale(new_scale, new_scale).translate(-new_view_scene_rect.x(),
                                                                        -new_view_scene_rect.y())
+
+        new_rect = self.slide_helper.get_rect_for_level(new_level)
+        self.scene.setSceneRect(new_rect)
         self.current_level = new_level
         self.reset_view_transform()
         self.view.setTransform(transform, False)
