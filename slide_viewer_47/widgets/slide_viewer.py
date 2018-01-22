@@ -5,9 +5,11 @@ import PyQt5
 import openslide
 from PyQt5.QtCore import QPoint, Qt, QEvent, QRect, QSize, QRectF, pyqtSignal, QMarginsF, QSizeF, QPointF
 from PyQt5.QtGui import QWheelEvent, QMouseEvent, QImage, QPainter, QTransform, QResizeEvent, QPaintEvent
-from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QVBoxLayout, QLabel, QRubberBand, QGraphicsItem
+from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QVBoxLayout, QLabel, QRubberBand, QGraphicsItem, \
+    QGraphicsItemGroup
 
 from slide_viewer_47.graphics.graphics_tile import GraphicsTile
+from slide_viewer_47.graphics.my_graphics_group import MyGraphicsGroup
 from slide_viewer_47.graphics.slide_graphics_group import SlideGraphicsGroup
 from slide_viewer_47.common.utils import point_to_str, SlideHelper
 
@@ -20,25 +22,42 @@ def build_screenshot_image(scene: QGraphicsScene, image_size: QSize, scene_rect:
     # painter.setClipping(True)
     # painter.setClipRect(QRect(QPoint(0, 0), image_size))
     image.fill(painter.background().color())
-    # if not scene_rect:
-    #     scene_rect = scene.sceneRect()
-    # scene.setSceneRect(scene_rect)
-    items1 = scene.items(scene_rect, Qt.IntersectsItemBoundingRect)
-    all_items = scene.items()
-    # for item in all_items:
-    #     if isinstance(item, GraphicsTile):
-    #         item.setVisible(False)
-    # for item in items1:
-    #     item.setVisible(True)
-    print(items1)
-    items2 = scene.items(scene_rect, Qt.IntersectsItemBoundingRect)
-    print(items2)
-    top_level_items = [item.topLevelItem() for item in items1]
+    scene_items = scene.items(scene_rect, Qt.IntersectsItemBoundingRect)
+    # print(scene_items)
+    only_leaf_items = [item for item in scene_items if len(item.childItems()) == 0]
+    item_parents = {}
+    item_groups = {}
+    for item in only_leaf_items:
+        if item.group():
+            item_groups[item] = item.group()
+            item.group().setVisible(False)
+        else:
+            item_parents[item] = item.parentItem()
+            item.parentItem().setVisible(False)
+    group_for_screenshot = QGraphicsItemGroup()
+    for item in only_leaf_items:
+        group_for_screenshot.addToGroup(item)
+    # print("prev_group_size: ", len(prev_group.childItems()))
+    scene.addItem(group_for_screenshot)
+    group_for_screenshot.setVisible(True)
+    # scene_items2 = scene.items(scene_rect, Qt.IntersectsItemBoundingRect)
+    # print(scene_items2)
     print("before render==========================================")
     rendered_size = scene_rect.size().scaled(QSizeF(image_size), Qt.KeepAspectRatio)
     dsize = QSizeF(image_size) - rendered_size
     top_left = QPointF(dsize.width() / 2, dsize.height() / 2)
     scene.render(painter, QRectF(top_left, rendered_size), scene_rect)
+    scene.destroyItemGroup(group_for_screenshot)
+
+    for item in item_parents:
+        parent = item_parents[item]
+        item.setParentItem(parent)
+        parent.setVisible(True)
+    for item in item_groups:
+        group = item_groups[item]
+        group.addToGroup(item)
+        group.setVisible(True)
+
     painter.end()
     return image
 

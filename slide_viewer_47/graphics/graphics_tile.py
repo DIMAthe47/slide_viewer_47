@@ -2,7 +2,7 @@ import typing
 
 from PIL.ImageQt import ImageQt
 from PyQt5 import QtGui
-from PyQt5.QtCore import QRectF, QRect, Qt
+from PyQt5.QtCore import QRectF, QRect, Qt, QSizeF
 from PyQt5.QtGui import QPixmapCache
 
 from PyQt5.QtWidgets import QGraphicsItem, QWidget, QStyleOptionGraphicsItem
@@ -15,7 +15,10 @@ class GraphicsTile(QGraphicsItem):
         self.x_y_w_h = x_y_w_h
         self.slide_rect_0 = QRect(int(x_y_w_h[0] * downsample), int(self.x_y_w_h[1] * downsample), x_y_w_h[2],
                                   x_y_w_h[3])
-        self.scene_rect = QRect(x_y_w_h[0], x_y_w_h[1], x_y_w_h[2], x_y_w_h[3])
+        self.scene_rect = QRect(int(x_y_w_h[0] * downsample), int(self.x_y_w_h[1] * downsample), x_y_w_h[2] ,
+                                x_y_w_h[3])
+        # self.scene_rect = QRect(x_y_w_h[0], x_y_w_h[1], x_y_w_h[2], x_y_w_h[3])
+        # self.scene_rect = QRect(0, 0, x_y_w_h[2], x_y_w_h[3])
         self.slide = slide
         self.level = level
         self.downsample = downsample
@@ -31,17 +34,19 @@ class GraphicsTile(QGraphicsItem):
         return pix
 
     def boundingRect(self):
-        return QRectF(self.scene_rect)
+        # return QRectF(self.pos(), QSizeF(self.x_y_w_h[2], self.x_y_w_h[3]))
+        # return QRectF(0, 0, self.x_y_w_h[2], self.x_y_w_h[3])
+        # return QRectF(0, 0, self.x_y_w_h[2], self.x_y_w_h[3])
+        return QRectF(0, 0, self.scene_rect.width(), self.scene_rect.height())
+        # return QRectF(self.scene_rect)
 
-    def isVisible(self) -> bool:
-        scene_contains=self.scene().sceneRect().contains(self.boundingRect())
-        return scene_contains
-        # return super().isVisible()
+    # def isVisible(self) -> bool:
+    #     scene_contains = self.scene().sceneRect().contains(self.boundingRect())
+    #     return scene_contains
+    # return super().isVisible()
 
-    def isVisibleTo(self, parent: 'QGraphicsItem') -> bool:
-        return super().isVisibleTo(parent)
-
-
+    # def isVisibleTo(self, parent: 'QGraphicsItem') -> bool:
+    #     return super().isVisibleTo(parent)
 
     # def topLevelItem(self) -> 'QGraphicsItem':
     #     return 0
@@ -49,9 +54,9 @@ class GraphicsTile(QGraphicsItem):
     # def shape(self):
     #     return QRectF(self.scene_rect)
 
-
     def paint(self, painter: QtGui.QPainter, option: QStyleOptionGraphicsItem,
               widget: typing.Optional[QWidget] = ...):
+        # print("pos ", self.pos())
         print("paint ", self.scene_rect, option.rect, option.exposedRect)
         self.pixmap = QPixmapCache.find(self.cache_key)
         if not self.pixmap:
@@ -61,4 +66,5 @@ class GraphicsTile(QGraphicsItem):
             self.pixmap = self.pilimage_to_pixmap(tile_pilimage)
             QPixmapCache.insert(self.cache_key, self.pixmap)
 
-        painter.drawPixmap(self.scene_rect, self.pixmap)
+        # painter.drawPixmap(self.scene_rect, self.pixmap)
+        painter.drawPixmap(self.boundingRect().toRect(), self.pixmap)

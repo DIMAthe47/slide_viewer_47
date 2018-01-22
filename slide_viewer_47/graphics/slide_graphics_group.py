@@ -10,7 +10,8 @@ from PyQt5.QtWidgets import QGraphicsItemGroup, QGraphicsItem, QGraphicsScene
 from slide_viewer_47.common.utils import slice_rect, SlideHelper
 from slide_viewer_47.graphics.graphics_grid import GraphicsGrid
 from slide_viewer_47.graphics.graphics_tile import GraphicsTile
-from slide_viewer_47.graphics.leveled_graphics_group import LeveledGraphicsGroup, MyGraphicsGroup
+from slide_viewer_47.graphics.leveled_graphics_group import LeveledGraphicsGroup
+from slide_viewer_47.graphics.my_graphics_group import MyGraphicsGroup
 from slide_viewer_47.graphics.selected_graphics_rect import SelectedGraphicsRect
 
 
@@ -21,6 +22,7 @@ def build_tiles_level(level, tile_size, slide_helper: SlideHelper):
     downsample = slide_helper.get_downsample_for_level(level)
     for tile_rect in tiles_rects:
         item = GraphicsTile(tile_rect, slide_helper.get_slide(), level, downsample)
+        item.moveBy(item.x_y_w_h[0], item.x_y_w_h[1])
         tiles_graphics_group.addToGroup(item)
 
     return tiles_graphics_group
@@ -34,6 +36,7 @@ def build_grid_level(level, grid_size_0_level, slide_helper: SlideHelper):
 
     colors = [QColor(0, 255, 0, random.randint(0, 128)) for i in range(len(rects))]
     graphics_grid = GraphicsGrid(rects, colors, [0, 0, *level_size])
+    graphics_grid.setZValue(10)
     return graphics_grid
 
 
@@ -46,14 +49,13 @@ def build_grid_level_from_rects(level, rects, colors, slide_helper: SlideHelper)
 class SlideGraphicsGroup(QGraphicsItemGroup):
     def __init__(self, slide_path, preffered_rects_count=2000):
         super().__init__()
-        # self.slide_path = slide_path
-        # self.slide = openslide.OpenSlide(slide_path)
         self.slide_helper = SlideHelper(slide_path)
 
         slide_w, slide_h = self.slide_helper.get_level_size(0)
         t = ((slide_w * slide_h) / preffered_rects_count) ** 0.5
         if t < 1000:
             t = 1000
+        t = 200
         self.tile_size = (int(t), int(t))
 
         self.setAcceptedMouseButtons(Qt.NoButton)
@@ -78,9 +80,12 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
 
         # self.setFlag(QGraphicsItem.ItemHasNoContents, True)
         # self.setFlag(QGraphicsItem.ItemContainsChildrenInShape, True)
-        self.setFlag(QGraphicsItem.ItemClipsToShape, True)
+        # self.setFlag(QGraphicsItem.ItemHasNoContents, True)
+        # self.setFlag(QGraphicsItem.ItemClipsToShape, True)
+        # self.setFlag(QGraphicsItem.ItemClipsChildrenToShape, True)
 
     def boundingRect(self) -> QRectF:
+        #     return QRectF()
         return self.leveled_graphics_group.boundingRect()
 
     def init_tiles_levels(self):
@@ -109,6 +114,7 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
             rect_for_level = QRectF(selected_qrectf_0_level.topLeft() / downsample,
                                     selected_qrectf_0_level.size() / downsample)
             selected_graphics_rect = SelectedGraphicsRect(rect_for_level)
+            selected_graphics_rect.setZValue(20)
 
             self.leveled_graphics_selection.clear_level(level)
             self.leveled_graphics_selection.add_item_to_level_group(level, selected_graphics_rect)

@@ -1,22 +1,10 @@
 import typing
 
-from PIL.ImageQt import ImageQt
-from PyQt5 import QtGui, QtCore
-from PyQt5.QtCore import QRectF, QRect, Qt
-from PyQt5.QtGui import QPixmapCache, QColor, QBrush
+from PyQt5.QtCore import QRectF, Qt
 
-from PyQt5.QtWidgets import QGraphicsItem, QWidget, QGraphicsRectItem, QGraphicsItemGroup
-import openslide
+from PyQt5.QtWidgets import QGraphicsItem, QGraphicsItemGroup
 
-
-class MyGraphicsGroup(QGraphicsItemGroup):
-
-    def __init__(self, parent: typing.Optional['QGraphicsItem'] = None) -> None:
-        super().__init__(parent)
-        # self.setFlag(QGraphicsItem.ItemContainsChildrenInShape, True)
-
-    def boundingRect(self) -> QRectF:
-        return QRectF()
+from slide_viewer_47.graphics.my_graphics_group import MyGraphicsGroup
 
 
 class LeveledGraphicsGroup(QGraphicsItemGroup):
@@ -36,9 +24,11 @@ class LeveledGraphicsGroup(QGraphicsItemGroup):
 
         # self.setFlag(QGraphicsItem.ItemHasNoContents, True)
         # self.setFlag(QGraphicsItem.ItemContainsChildrenInShape, True)
-        self.setFlag(QGraphicsItem.ItemClipsChildrenToShape, True)
+        # self.setFlag(QGraphicsItem.ItemClipsChildrenToShape, True)
+        # self.setFlag(QGraphicsItem.ItemClipsToShape, True)
 
     def boundingRect(self):
+        # return QRectF()
         # bounding_rect = QRectF()
         if self.visible_level:
             return self.level__group[self.visible_level].boundingRect()
