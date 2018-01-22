@@ -1,27 +1,15 @@
-import typing
 from PyQt5 import QtCore
 
 import PyQt5
 from PyQt5.QtCore import QPoint, Qt, QEvent, QRect, QSize, QRectF, pyqtSignal, QMarginsF
 from PyQt5.QtGui import QWheelEvent, QMouseEvent, QTransform, QPaintEvent
-from PyQt5.QtWidgets import QWidget, QGraphicsView, QGraphicsScene, QVBoxLayout, QLabel, QRubberBand
+from PyQt5.QtWidgets import QWidget, QGraphicsView, QVBoxLayout, QLabel, QRubberBand
 
 from slide_viewer_47.common.screenshot_builders import build_screenshot_image
+from slide_viewer_47.graphics.my_graphics_scene import MyGraphicsScene
 from slide_viewer_47.graphics.slide_graphics_group import SlideGraphicsGroup
 from slide_viewer_47.common.utils import point_to_str, SlideHelper
 
-
-class MyScene(QGraphicsScene):
-
-    def __init__(self, parent: typing.Optional[QtCore.QObject] = None) -> None:
-        super().__init__(parent)
-
-    # def items(self, rect: QtCore.QRectF, mode: QtCore.Qt.ItemSelectionMode = ..., order: QtCore.Qt.SortOrder = ...,
-    #           deviceTransform: QtGui.QTransform = ...) -> typing.List[QGraphicsItem]:
-    #     return super().items(rect, mode, order, deviceTransform)
-
-
-#
 
 class SlideViewer(QWidget):
     eventSignal = pyqtSignal(PyQt5.QtCore.QEvent)
@@ -33,7 +21,7 @@ class SlideViewer(QWidget):
         self.init_layout()
 
     def init_view(self):
-        self.scene = MyScene()
+        self.scene = MyGraphicsScene()
         self.view = QGraphicsView()
         self.view.setScene(self.scene)
         self.view.setTransformationAnchor(QGraphicsView.NoAnchor)
@@ -73,9 +61,6 @@ class SlideViewer(QWidget):
     def load_slide(self, slide_path, start_level: int = -1, start_image_rect: QRectF = None, preffered_rects_count=2000,
                    zoom_step=1.15):
         self.zoom_step = zoom_step
-        # self.slide_path = slide_path
-        # self.slide = openslide.OpenSlide(slide_path)
-        # self.slide_helper = SlideHelper(self.slide)
         self.slide_helper = SlideHelper(slide_path)
 
         self.selected_rect_0_level = None
@@ -136,7 +121,6 @@ class SlideViewer(QWidget):
     def process_mouse_event(self, event: QMouseEvent):
         if event.button() == Qt.MiddleButton:
             self.update_scale(QPoint(), 1.15)
-            # self.take_screenshot()
         elif event.button() == Qt.LeftButton:
             if event.type() == QEvent.MouseButtonPress:
                 self.mouse_press_view = QPoint(event.pos())
@@ -158,11 +142,6 @@ class SlideViewer(QWidget):
             return True
 
         return False
-
-    def take_screenshot(self):
-        scene_rect = self.view.mapToScene(self.view.viewport().rect()).boundingRect()
-        image = build_screenshot_image(self.scene, self.view.viewport().size(), scene_rect)
-        image.save("view_screenshot_image.png")
 
     def remember_selected_rect_params(self):
         pos_scene = self.view.mapToScene(self.rubber_band.pos())

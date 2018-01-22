@@ -16,7 +16,6 @@ class LeveledGraphicsGroup(QGraphicsItemGroup):
             # group = QGraphicsItemGroup(self)
             group = MyGraphicsGroup(self)
             group.setVisible(False)
-            group.setOpacity(0.0)
             self.level__group[level] = group
         self.visible_level = None
         self.setAcceptedMouseButtons(Qt.NoButton)
@@ -28,17 +27,13 @@ class LeveledGraphicsGroup(QGraphicsItemGroup):
         # self.setFlag(QGraphicsItem.ItemClipsToShape, True)
 
     def boundingRect(self):
-        # return QRectF()
-        # bounding_rect = QRectF()
         if self.visible_level:
             return self.level__group[self.visible_level].boundingRect()
         else:
             return QRectF()
-        # return bounding_rect
 
     def add_item_to_level_group(self, level, item: QGraphicsItem):
         self.level__group[level].addToGroup(item)
-        # item.setVisible(False)
 
     def remove_item_from_level_group(self, level, item: QGraphicsItem):
         self.level__group[level].removeFromGroup(item)
@@ -54,4 +49,3 @@ class LeveledGraphicsGroup(QGraphicsItemGroup):
         for level in self.levels:
             group = self.level__group[level]
             group.setVisible(level == visible_level)
-            group.setOpacity(level == visible_level)
