@@ -9,7 +9,8 @@ from PyQt5.QtWidgets import QInputDialog, QDialog, QDialogButtonBox, QVBoxLayout
 from PyQt5.QtGui import QPixmapCache
 from PyQt5.QtWidgets import QMenuBar, QAction, QFileDialog, QMenu
 
-from slide_viewer_47.widgets.slide_viewer import SlideViewer, build_screenshot_image
+from slide_viewer_47.widgets.slide_viewer import SlideViewer
+from slide_viewer_47.common.screenshot_builders import build_screenshot_image
 
 
 class MySpinBox(QSpinBox):
