@@ -3,7 +3,8 @@ from PyQt5 import QtCore
 import PyQt5
 from PyQt5.QtCore import QPoint, Qt, QEvent, QRect, QSize, QRectF, pyqtSignal, QMarginsF
 from PyQt5.QtGui import QWheelEvent, QMouseEvent, QTransform, QPaintEvent
-from PyQt5.QtWidgets import QWidget, QGraphicsView, QVBoxLayout, QLabel, QRubberBand
+from PyQt5.QtWidgets import QWidget, QGraphicsView, QVBoxLayout, QLabel, QRubberBand, QMessageBox, QHBoxLayout, QFrame, \
+    QGroupBox
 
 from slide_viewer_47.common.screenshot_builders import build_screenshot_image
 from slide_viewer_47.graphics.my_graphics_scene import MyGraphicsScene
@@ -14,11 +15,11 @@ from slide_viewer_47.common.utils import point_to_str, SlideHelper
 class SlideViewer(QWidget):
     eventSignal = pyqtSignal(PyQt5.QtCore.QEvent)
 
-    def __init__(self, parent: QWidget = None):
+    def __init__(self, parent: QWidget = None, viewer_top_else_left=True):
         super().__init__(parent)
         self.init_view()
         self.init_labels()
-        self.init_layout()
+        self.init_layout(viewer_top_else_left)
 
     def init_view(self):
         self.scene = MyGraphicsScene()
@@ -32,26 +33,31 @@ class SlideViewer(QWidget):
 
         self.view.horizontalScrollBar().sliderMoved.connect(self.update_labels)
         self.view.verticalScrollBar().sliderMoved.connect(self.update_labels)
+        self.scale_initializer_deffered_function = None
 
     def init_labels(self):
         self.level_label = QLabel()
-        self.level_label.setWordWrap(True)
+        # self.level_label.setWordWrap(True)
         self.selected_rect_label = QLabel()
-        self.selected_rect_label.setWordWrap(True)
+        # self.selected_rect_label.setWordWrap(True)
         self.mouse_pos_scene_label = QLabel()
-        self.mouse_pos_scene_label.setWordWrap(True)
+        # self.mouse_pos_scene_label.setWordWrap(True)
         self.view_rect_scene_label = QLabel()
-        self.view_rect_scene_label.setWordWrap(True)
+        # self.view_rect_scene_label.setWordWrap(True)
+        self.labels_layout = QVBoxLayout()
+        self.labels_layout.setAlignment(Qt.AlignTop)
+        self.view_rect_scene_label = QLabel()
+        self.labels_layout.addWidget(self.level_label)
+        self.labels_layout.addWidget(self.mouse_pos_scene_label)
+        # self.labels_layout.addWidget(self.selected_rect_label)
+        self.labels_layout.addWidget(self.view_rect_scene_label)
 
-    def init_layout(self):
-        layout = QVBoxLayout(self)
-        layout.addWidget(self.view)
-        layout.addWidget(self.level_label)
-        layout.addWidget(self.mouse_pos_scene_label)
-        # layout.addWidget(self.selected_rect_label)
-        layout.addWidget(self.view_rect_scene_label)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
+    def init_layout(self, viewer_top_else_left=True):
+        main_layout = QVBoxLayout(self) if viewer_top_else_left else QHBoxLayout(self)
+        main_layout.addWidget(self.view)
+        main_layout.addLayout(self.labels_layout)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(main_layout)
 
     """
     If you want to start view frome some point at some level, specify <start_level> and <start_image_rect> params. 
@@ -120,7 +126,12 @@ class SlideViewer(QWidget):
 
     def process_mouse_event(self, event: QMouseEvent):
         if event.button() == Qt.MiddleButton:
-            self.update_scale(QPoint(), 1.15)
+            if event.type() == QEvent.MouseButtonPress:
+                self.slide_graphics.update_grid_visibility(not self.slide_graphics.grid_visible)
+                # items=self.scene.items()
+                # QMessageBox.information(None, "Items", str(items))
+                return True
+            # self.update_scale(QPoint(), 1.15)
         elif event.button() == Qt.LeftButton:
             if event.type() == QEvent.MouseButtonPress:
                 self.mouse_press_view = QPoint(event.pos())

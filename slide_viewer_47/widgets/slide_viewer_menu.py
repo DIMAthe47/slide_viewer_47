@@ -4,7 +4,7 @@ from PIL import Image
 import PIL
 from PyQt5.QtCore import QRectF, QSize
 from PyQt5.QtWidgets import QInputDialog, QDialog, QDialogButtonBox, QVBoxLayout, QFormLayout, QGroupBox, QLineEdit, \
-    QHBoxLayout, QSpinBox, QWidget
+    QHBoxLayout, QSpinBox, QWidget, QMessageBox
 
 from PyQt5.QtGui import QPixmapCache
 from PyQt5.QtWidgets import QMenuBar, QAction, QFileDialog, QMenu
@@ -41,8 +41,17 @@ class SlideViewerMenu(QMenu):
         self.addAction(self.take_screenshot_action)
         self.slide_viewer: SlideViewer = None
 
+        self.print_items_action = QAction("&print items", parent)
+        self.print_items_action.triggered.connect(self.on_print_items_action)
+        self.addAction(self.print_items_action)
+
     def set_slide_viewer(self, slide_viewer: SlideViewer):
         self.slide_viewer = slide_viewer
+
+    def on_print_items_action(self):
+        items = self.slide_viewer.scene.items()
+        print(items)
+        QMessageBox.information(None, "Items", str(items))
 
     def on_load_slide(self):
         file_path = self.open_file_name_dialog()

@@ -49,3 +49,9 @@ class LeveledGraphicsGroup(QGraphicsItemGroup):
         for level in self.levels:
             group = self.level__group[level]
             group.setVisible(level == visible_level)
+
+    def __str__(self) -> str:
+        return "{}: visible_level: {}".format(self.__class__.__name__, self.visible_level)
+
+    def __repr__(self) -> str:
+        return self.__str__()

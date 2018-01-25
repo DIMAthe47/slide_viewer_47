@@ -13,5 +13,11 @@ class MyGraphicsGroup(QGraphicsItemGroup):
         # self.setFlag(QGraphicsItem.ItemClipsToShape, True)
         # self.setFlag(QGraphicsItem.ItemHasNoContents, True)
 
+    def __str__(self) -> str:
+        return "{}: children count: {}".format(self.__class__.__name__, len(self.childItems()))
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
     # def boundingRect(self) -> QRectF:
     #     return QRectF()

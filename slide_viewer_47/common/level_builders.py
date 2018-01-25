@@ -14,7 +14,7 @@ def build_tiles_level(level, tile_size, slide_helper: SlideHelper):
     tiles_graphics_group = MyGraphicsGroup()
     downsample = slide_helper.get_downsample_for_level(level)
     for tile_rect in tiles_rects:
-        item = GraphicsTile(tile_rect, slide_helper.get_slide(), level, downsample)
+        item = GraphicsTile(tile_rect, slide_helper.get_slide_path(), level, downsample)
         item.moveBy(tile_rect[0], tile_rect[1])
         tiles_graphics_group.addToGroup(item)
 
