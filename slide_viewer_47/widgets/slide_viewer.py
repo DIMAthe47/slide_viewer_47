@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import QWidget, QGraphicsView, QVBoxLayout, QLabel, QRubber
     QGroupBox
 
 from slide_viewer_47.common.screenshot_builders import build_screenshot_image
+from slide_viewer_47.common.slide_tile import SlideViewParams
 from slide_viewer_47.graphics.my_graphics_scene import MyGraphicsScene
 from slide_viewer_47.graphics.slide_graphics_group import SlideGraphicsGroup
 from slide_viewer_47.common.utils import point_to_str, SlideHelper
@@ -64,7 +65,7 @@ class SlideViewer(QWidget):
     start_image_rect : rect in dimensions of slide at level=start_level. If None - fits the whole size of slide
     """
 
-    def load_slide(self, slide_path, start_level: int = -1, start_image_rect: QRectF = None, preffered_rects_count=2000,
+    def load_slide123(self, slide_path, start_level: int = -1, start_image_rect: QRectF = None, preffered_rects_count=2000,
                    zoom_step=1.15):
         self.zoom_step = zoom_step
         self.slide_helper = SlideHelper(slide_path)
@@ -76,11 +77,11 @@ class SlideViewer(QWidget):
         self.scene.addItem(self.slide_graphics)
 
         if start_level == -1 or start_level is None:
-            self.current_level = self.slide_helper.get_max_level()
+            self.slide_view_params.level = self.slide_helper.get_max_level()
         else:
-            self.current_level = start_level
-        self.slide_graphics.update_visible_level(self.current_level)
-        self.scene.setSceneRect(self.slide_helper.get_rect_for_level(self.current_level))
+            self.slide_view_params.level = start_level
+        self.slide_graphics.update_visible_level(self.slide_view_params.level)
+        self.scene.setSceneRect(self.slide_helper.get_rect_for_level(self.slide_view_params.level))
 
         def scale_initializer_deffered_function():
             self.view.resetTransform()
@@ -88,10 +89,42 @@ class SlideViewer(QWidget):
             if start_image_rect:
                 self.view.fitInView(start_image_rect, Qt.KeepAspectRatioByExpanding)
                 # self.view.fitInView(start_image_rect, Qt.KeepAspectRatio)
-                # print("after fit: ", self.current_level, self.get_current_view_scene_rect())
+                # print("after fit: ", self.slide_view_params.level, self.get_current_view_scene_rect())
             else:
                 start_margins = QMarginsF(200, 200, 200, 200)
-                start_image_rect_ = self.slide_helper.get_rect_for_level(self.current_level)
+                start_image_rect_ = self.slide_helper.get_rect_for_level(self.slide_view_params.level)
+                self.view.fitInView(start_image_rect_ + start_margins, Qt.KeepAspectRatio)
+
+            self.update_labels()
+
+        self.scale_initializer_deffered_function = scale_initializer_deffered_function
+
+    def load(self, slide_view_params: SlideViewParams, preffered_rects_count=2000,
+             zoom_step=1.15):
+        self.zoom_step = zoom_step
+        self.slide_view_params = slide_view_params
+        self.slide_helper = SlideHelper(slide_view_params.slide_path)
+
+        self.slide_graphics = SlideGraphicsGroup(self.slide_helper.get_slide_path(), preffered_rects_count)
+        self.scene.clear()
+        self.scene.addItem(self.slide_graphics)
+
+        if self.slide_view_params.level == -1 or self.slide_view_params.level is None:
+            self.slide_view_params.level = self.slide_helper.get_max_level()
+
+        self.slide_graphics.update_visible_level(self.slide_view_params.level)
+        self.scene.setSceneRect(self.slide_helper.get_rect_for_level(self.slide_view_params.level))
+
+        def scale_initializer_deffered_function():
+            self.view.resetTransform()
+            # print("size when loading: ", self.view.viewport().size())
+            if self.slide_view_params.level_rect:
+                self.view.fitInView(self.slide_view_params.level_rect, Qt.KeepAspectRatioByExpanding)
+                # self.view.fitInView(start_image_rect, Qt.KeepAspectRatio)
+                # print("after fit: ", self.slide_view_params.level, self.get_current_view_scene_rect())
+            else:
+                start_margins = QMarginsF(200, 200, 200, 200)
+                start_image_rect_ = self.slide_helper.get_rect_for_level(self.slide_view_params.level)
                 self.view.fitInView(start_image_rect_ + start_margins, Qt.KeepAspectRatio)
 
             self.update_labels()
@@ -141,7 +174,7 @@ class SlideViewer(QWidget):
             elif event.type() == QEvent.MouseButtonRelease:
                 self.rubber_band.hide()
                 self.remember_selected_rect_params()
-                self.slide_graphics.update_selected_rect_0_level(self.selected_rect_0_level)
+                self.slide_graphics.update_selected_rect_0_level(self.slide_view_params.selected_rect_0_level)
                 self.update_labels()
                 self.scene.invalidate()
                 return True
@@ -157,10 +190,10 @@ class SlideViewer(QWidget):
     def remember_selected_rect_params(self):
         pos_scene = self.view.mapToScene(self.rubber_band.pos())
         rect_scene = self.view.mapToScene(self.rubber_band.rect()).boundingRect()
-        downsample = self.slide_helper.get_downsample_for_level(self.current_level)
+        downsample = self.slide_helper.get_downsample_for_level(self.slide_view_params.level)
         selected_qrectf_0_level = QRectF(pos_scene * downsample,
                                          rect_scene.size() * downsample)
-        self.selected_rect_0_level = selected_qrectf_0_level.getRect()
+        self.slide_view_params.selected_rect_0_level = selected_qrectf_0_level.getRect()
 
     def update_scale(self, mouse_pos: QPoint, zoom):
         old_mouse_pos_scene = self.view.mapToScene(mouse_pos)
@@ -185,7 +218,7 @@ class SlideViewer(QWidget):
 
         new_rect = self.slide_helper.get_rect_for_level(new_level)
         self.scene.setSceneRect(new_rect)
-        self.current_level = new_level
+        self.slide_view_params.level = new_level
         self.reset_view_transform()
         self.view.setTransform(transform, False)
         self.slide_graphics.update_visible_level(new_level)
@@ -202,16 +235,18 @@ class SlideViewer(QWidget):
         return best_level
 
     def update_labels(self):
-        level_downsample = self.slide_helper.get_downsample_for_level(self.current_level)
-        level_size = self.slide_helper.get_level_size(self.current_level)
+        level_downsample = self.slide_helper.get_downsample_for_level(self.slide_view_params.level)
+        level_size = self.slide_helper.get_level_size(self.slide_view_params.level)
         self.level_label.setText(
-            "current level, downsample, size: {}, {:.4f}, ({}, {})".format(self.current_level, level_downsample,
+            "current level, downsample, size: {}, {:.4f}, ({}, {})".format(self.slide_view_params.level,
+                                                                           level_downsample,
                                                                            *level_size))
         self.view_rect_scene_label.setText(
             "view_rect_scene: ({:.2f},{:.2f},{:.2f},{:.2f})".format(*self.get_current_view_scene_rect().getRect()))
-        if self.selected_rect_0_level:
+        if self.slide_view_params.selected_rect_0_level:
             self.selected_rect_label.setText(
-                "selected rect (0-level): ({:.2f},{:.2f},{:.2f},{:.2f})".format(*self.selected_rect_0_level))
+                "selected rect (0-level): ({:.2f},{:.2f},{:.2f},{:.2f})".format(
+                    *self.slide_view_params.selected_rect_0_level))
 
     def reset_view_transform(self):
         self.view.resetTransform()

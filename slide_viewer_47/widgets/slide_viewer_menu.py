@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import QInputDialog, QDialog, QDialogButtonBox, QVBoxLayout
 from PyQt5.QtGui import QPixmapCache
 from PyQt5.QtWidgets import QMenuBar, QAction, QFileDialog, QMenu
 
+from slide_viewer_47.common.slide_tile import SlideViewParams
 from slide_viewer_47.widgets.slide_viewer import SlideViewer
 from slide_viewer_47.common.screenshot_builders import build_screenshot_image
 
@@ -57,7 +58,8 @@ class SlideViewerMenu(QMenu):
         file_path = self.open_file_name_dialog()
         if file_path:
             # self.slide_viewer.load_slide(file_path, start_level=1, start_image_rect=QRectF(1000, 1000, 1000, 1000))
-            self.slide_viewer.load_slide(file_path)
+            slide_view_params = SlideViewParams(file_path)
+            self.slide_viewer.load(slide_view_params)
             QPixmapCache.clear()
 
     def on_set_grid_action(self):
