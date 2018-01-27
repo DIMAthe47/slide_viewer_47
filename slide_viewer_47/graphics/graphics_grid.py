@@ -14,11 +14,11 @@ class GraphicsGrid(QGraphicsItem):
         self.setAcceptedMouseButtons(Qt.NoButton)
         self.setAcceptHoverEvents(False)
         self.bounding_rect = bounding_rect
-        # min_x = min(grid_rects, key=lambda x: x[0])[0]
-        # min_y = min(grid_rects, key=lambda x: x[1])[1]
-        # max_x_tuple = max(grid_rects, key=lambda x: x[0] + x[2])
+        # min_x = min(grid_rects_0_level, key=lambda x: x[0])[0]
+        # min_y = min(grid_rects_0_level, key=lambda x: x[1])[1]
+        # max_x_tuple = max(grid_rects_0_level, key=lambda x: x[0] + x[2])
         # max_x = max_x_tuple[0] + max_x_tuple[2]
-        # max_y_tuple = max(grid_rects, key=lambda x: x[1] + x[3])
+        # max_y_tuple = max(grid_rects_0_level, key=lambda x: x[1] + x[3])
         # max_y = max_y_tuple[1] + max_y_tuple[3]
         # self.bounding_rect = (min_x, min_y, max_x - min_x, max_y - min_y)
 
@@ -36,7 +36,7 @@ class GraphicsGrid(QGraphicsItem):
         painter.save()
         painter.setRenderHint(QtGui.QPainter.Antialiasing, True)
         # painter.setRenderHint(QtGui.QPainter.HighQualityAntialiasing, True)
-        # for grid_rect, color in zip(self.grid_rects, self.colors):
+        # for grid_rect, color in zip(self.grid_rects_0_level, self.colors):
         #     painter.setBrush(color)
         #     painter.drawRect(*grid_rect)
         for color_key in self.color_key__qrectfs:

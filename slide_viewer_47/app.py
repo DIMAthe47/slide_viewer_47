@@ -1,6 +1,8 @@
 import sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QApplication
+
+from slide_viewer_47.common.slide_tile import SlideViewParams
 from slide_viewer_47.widgets.slide_viewer_main_window import SlideViewerMainWindow
 
 
@@ -19,8 +21,9 @@ if __name__ == "__main__":
     # slide_path = '/home/dimathe47/Downloads/JP2K-33003-1.svs'
     # slide_path = '/home/dimathe47/Downloads/OS-1.ndpi'
     # slide_path = r'C:\Users\dmitriy\Downloads\JP2K-33003-1.svs'
-    # slide_path = r'C:\Users\DIMA\PycharmProjects\slide_cbir_47\downloads\images\19403.svs'
+    slide_path = r'C:\Users\DIMA\PycharmProjects\slide_cbir_47\downloads\images\19403.svs'
     # slide_path = r'C:\Users\dmitriy\PycharmProjects\slide_cbir_47\downloads\images\19403.svs'
     win.show()
-    # win.slide_viewer.load_slide(slide_path)
+    slide_view_params = SlideViewParams(slide_path)
+    win.slide_viewer.load(slide_view_params)
     sys.exit(app.exec_())

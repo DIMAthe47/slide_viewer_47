@@ -1,17 +1,49 @@
+import json
 import typing
+from functools import singledispatch
 
 from PIL import Image
 import PIL
-from PyQt5.QtCore import QRectF, QSize
+from PyQt5.QtCore import QRectF, QSize, QRect
 from PyQt5.QtWidgets import QInputDialog, QDialog, QDialogButtonBox, QVBoxLayout, QFormLayout, QGroupBox, QLineEdit, \
     QHBoxLayout, QSpinBox, QWidget, QMessageBox
 
-from PyQt5.QtGui import QPixmapCache
+from PyQt5.QtGui import QPixmapCache, QColor
 from PyQt5.QtWidgets import QMenuBar, QAction, QFileDialog, QMenu
 
+from slide_viewer_47.common.level_builders import build_rects_and_colors_for_grid
 from slide_viewer_47.common.slide_tile import SlideViewParams
 from slide_viewer_47.widgets.slide_viewer import SlideViewer
 from slide_viewer_47.common.screenshot_builders import build_screenshot_image
+
+
+@singledispatch
+def to_json(val):
+    """Used by default."""
+    return json.dumps(val, indent=4)
+
+
+@to_json.register(QRectF)
+def qrectf_to_json(val: QRectF):
+    return json.dumps(val.getRect())
+
+
+@to_json.register(QRect)
+def qrect_to_json(val: QRect):
+    return json.dumps(val.getRect())
+
+
+@to_json.register(QColor)
+def qcolor_to_json(val: QColor):
+    return json.dumps(val.getRgb())
+
+
+@to_json.register(SlideViewParams)
+def slide_view_params_to_json(val: SlideViewParams):
+    vars_ = dict(vars(val))
+    del vars_["grid_rects_0_level"]
+    del vars_["grid_colors_0_level"]
+    return json.dumps(vars_, indent=4)
 
 
 class MySpinBox(QSpinBox):
@@ -42,17 +74,26 @@ class SlideViewerMenu(QMenu):
         self.addAction(self.take_screenshot_action)
         self.slide_viewer: SlideViewer = None
 
-        self.print_items_action = QAction("&print items", parent)
+        self.print_items_action = QAction("print &items", parent)
         self.print_items_action.triggered.connect(self.on_print_items_action)
         self.addAction(self.print_items_action)
+
+        self.print_slide_view_params_action = QAction("print slide_&view_params", parent)
+        self.print_slide_view_params_action.triggered.connect(self.on_print_slide_view_params)
+        self.addAction(self.print_slide_view_params_action)
 
     def set_slide_viewer(self, slide_viewer: SlideViewer):
         self.slide_viewer = slide_viewer
 
     def on_print_items_action(self):
-        items = self.slide_viewer.scene.items()
+        items = self.slide_viewer.scene.items(self.slide_viewer.get_current_view_scene_rect())
         print(items)
         QMessageBox.information(None, "Items", str(items))
+
+    def on_print_slide_view_params(self):
+        str_ = to_json(self.slide_viewer.slide_view_params)
+        print(str_)
+        QMessageBox.information(None, "SlideViewParams", str_)
 
     def on_load_slide(self):
         file_path = self.open_file_name_dialog()
@@ -66,9 +107,9 @@ class SlideViewerMenu(QMenu):
         dialog = QDialog()
         dialog.setWindowTitle("Grid size")
 
-        grid_size = self.slide_viewer.slide_graphics.grid_size_0_level
-        if not grid_size:
-            grid_size = (224, 224)
+        # grid_size = self.slide_viewer.slide_graphics.slide_view_params.grid_size_0_level
+        # if not grid_size:
+        grid_size = (224, 224)
 
         grid_w = QSpinBox()
         grid_w.setMaximum(2 ** 15)
@@ -93,7 +134,10 @@ class SlideViewerMenu(QMenu):
         button_box.rejected.connect(dialog.reject)
         res = dialog.exec()
         if res == QDialog.Accepted:
-            self.slide_viewer.slide_graphics.update_grid_size_0_level((grid_w.value(), grid_h.value()))
+            self.slide_viewer.slide_view_params.slide_path
+            rects, colors = build_rects_and_colors_for_grid((grid_w.value(), grid_h.value()),
+                                                            self.slide_viewer.slide_helper)
+            self.slide_viewer.slide_graphics.update_grid_rects_0_level(rects, colors)
 
     def on_go_to_action(self):
         dialog = QDialog()

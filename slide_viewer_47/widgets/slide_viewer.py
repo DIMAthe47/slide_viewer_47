@@ -65,8 +65,9 @@ class SlideViewer(QWidget):
     start_image_rect : rect in dimensions of slide at level=start_level. If None - fits the whole size of slide
     """
 
-    def load_slide123(self, slide_path, start_level: int = -1, start_image_rect: QRectF = None, preffered_rects_count=2000,
-                   zoom_step=1.15):
+    def load_slide123(self, slide_path, start_level: int = -1, start_image_rect: QRectF = None,
+                      preffered_rects_count=2000,
+                      zoom_step=1.15):
         self.zoom_step = zoom_step
         self.slide_helper = SlideHelper(slide_path)
 
@@ -105,7 +106,7 @@ class SlideViewer(QWidget):
         self.slide_view_params = slide_view_params
         self.slide_helper = SlideHelper(slide_view_params.slide_path)
 
-        self.slide_graphics = SlideGraphicsGroup(self.slide_helper.get_slide_path(), preffered_rects_count)
+        self.slide_graphics = SlideGraphicsGroup(slide_view_params, preffered_rects_count)
         self.scene.clear()
         self.scene.addItem(self.slide_graphics)
 
@@ -160,7 +161,7 @@ class SlideViewer(QWidget):
     def process_mouse_event(self, event: QMouseEvent):
         if event.button() == Qt.MiddleButton:
             if event.type() == QEvent.MouseButtonPress:
-                self.slide_graphics.update_grid_visibility(not self.slide_graphics.grid_visible)
+                self.slide_graphics.update_grid_visibility(not self.slide_graphics.slide_view_params.grid_visible)
                 # items=self.scene.items()
                 # QMessageBox.information(None, "Items", str(items))
                 return True
