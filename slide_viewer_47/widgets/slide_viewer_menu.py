@@ -134,9 +134,8 @@ class SlideViewerMenu(QMenu):
         button_box.rejected.connect(dialog.reject)
         res = dialog.exec()
         if res == QDialog.Accepted:
-            self.slide_viewer.slide_view_params.slide_path
             rects, colors = build_rects_and_colors_for_grid((grid_w.value(), grid_h.value()),
-                                                            self.slide_viewer.slide_helper)
+                                                            self.slide_viewer.slide_helper.get_level_size(0))
             self.slide_viewer.slide_graphics.update_grid_rects_0_level(rects, colors)
 
     def on_go_to_action(self):

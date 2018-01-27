@@ -29,7 +29,7 @@ def build_screenshot_image(scene: QGraphicsScene, image_size: QSize, scene_rect:
     rendered_size = scene_rect.size().scaled(QSizeF(image_size), Qt.KeepAspectRatio)
     dsize = QSizeF(image_size) - rendered_size
     top_left = QPointF(dsize.width() / 2, dsize.height() / 2)
-    scene.render(painter, QRectF(top_left, rendered_size), scene_rect)
+    scene.render(painter, QRectF(top_left, rendered_size), scene_rect, Qt.KeepAspectRatio)
     scene.destroyItemGroup(group_for_screenshot)
 
     for item in item_parents:

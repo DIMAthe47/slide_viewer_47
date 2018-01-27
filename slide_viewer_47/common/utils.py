@@ -1,3 +1,5 @@
+from math import ceil
+
 import openslide
 from PyQt5.QtCore import QRectF, QPoint, QPointF
 from PyQt5.QtGui import QPolygonF
