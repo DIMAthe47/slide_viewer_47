@@ -2,7 +2,7 @@ import sys
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import QApplication
 
-from slide_viewer_47.common.slide_tile import SlideViewParams
+from slide_viewer_47.common.slide_view_params import SlideViewParams
 from slide_viewer_47.widgets.slide_viewer_main_window import SlideViewerMainWindow
 
 

@@ -2,7 +2,7 @@ from PyQt5.QtCore import QRectF, Qt
 from PyQt5.QtWidgets import QGraphicsItemGroup
 
 from slide_viewer_47.common.level_builders import build_tiles_level, build_grid_level, build_grid_level_from_rects
-from slide_viewer_47.common.slide_tile import SlideViewParams
+from slide_viewer_47.common.slide_view_params import SlideViewParams
 from slide_viewer_47.common.utils import SlideHelper
 from slide_viewer_47.graphics.leveled_graphics_group import LeveledGraphicsGroup
 from slide_viewer_47.graphics.selected_graphics_rect import SelectedGraphicsRect

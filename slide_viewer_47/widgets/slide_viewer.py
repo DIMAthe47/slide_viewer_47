@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QWidget, QGraphicsView, QVBoxLayout, QLabel, QRubber
     QGroupBox
 
 from slide_viewer_47.common.screenshot_builders import build_screenshot_image
-from slide_viewer_47.common.slide_tile import SlideViewParams
+from slide_viewer_47.common.slide_view_params import SlideViewParams
 from slide_viewer_47.graphics.my_graphics_scene import MyGraphicsScene
 from slide_viewer_47.graphics.slide_graphics_group import SlideGraphicsGroup
 from slide_viewer_47.common.utils import point_to_str, SlideHelper

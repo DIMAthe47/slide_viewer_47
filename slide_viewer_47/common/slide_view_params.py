@@ -2,15 +2,6 @@ from typing import List, Tuple
 
 from slide_viewer_47.common.utils import SlideHelper
 
-
-class SlideTile:
-    def __init__(self, slide_path=None, level=None, rect=None) -> None:
-        super().__init__()
-        self.slide_path = slide_path
-        self.level = level
-        self.rect = rect
-
-
 class SlideViewParams:
     def __init__(self, slide_path: str = None, level: int = None, level_rect: Tuple[float, float, float, float] = None,
                  grid_rects_0_level: List[Tuple[float, float, float, float]] = None,

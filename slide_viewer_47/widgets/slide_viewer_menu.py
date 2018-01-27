@@ -12,7 +12,7 @@ from PyQt5.QtGui import QPixmapCache, QColor
 from PyQt5.QtWidgets import QMenuBar, QAction, QFileDialog, QMenu
 
 from slide_viewer_47.common.level_builders import build_rects_and_colors_for_grid
-from slide_viewer_47.common.slide_tile import SlideViewParams
+from slide_viewer_47.common.slide_view_params import SlideViewParams
 from slide_viewer_47.widgets.slide_viewer import SlideViewer
 from slide_viewer_47.common.screenshot_builders import build_screenshot_image
 
