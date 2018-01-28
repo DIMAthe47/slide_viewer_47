@@ -2,7 +2,8 @@ import random
 
 from PyQt5.QtGui import QColor
 
-from slide_viewer_47.common.utils import SlideHelper, slice_rect, slice_rect2
+from slide_viewer_47.common.utils import slice_rect, slice_rect2
+from slide_viewer_47.common.slide_helper import SlideHelper
 from slide_viewer_47.graphics.graphics_grid import GraphicsGrid
 from slide_viewer_47.graphics.graphics_tile import GraphicsTile
 from slide_viewer_47.graphics.my_graphics_group import MyGraphicsGroup
