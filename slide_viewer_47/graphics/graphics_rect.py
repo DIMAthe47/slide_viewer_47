@@ -13,7 +13,7 @@ class GraphicsRect(QGraphicsRectItem):
         self.x_y_w_h = x_y_w_h
         self.color = color
         self.setAcceptedMouseButtons(Qt.NoButton)
-        self.setAcceptHoverEvents(True)
+        self.setAcceptHoverEvents(False)
         self.brush = QBrush(self.color)
 
     def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',

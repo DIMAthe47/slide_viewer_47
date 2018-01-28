@@ -86,8 +86,8 @@ class SlideViewer(QWidget):
             self.view.resetTransform()
             # print("size when loading: ", self.view.viewport().size())
             if self.slide_view_params.level_rect:
-                self.view.fitInView(QRectF(*self.slide_view_params.level_rect), Qt.KeepAspectRatioByExpanding)
-                # self.view.fitInView(start_image_rect, Qt.KeepAspectRatio)
+                # self.view.fitInView(QRectF(*self.slide_view_params.level_rect), Qt.KeepAspectRatioByExpanding)
+                self.view.fitInView(QRectF(*self.slide_view_params.level_rect), Qt.KeepAspectRatio)
                 # print("after fit: ", self.slide_view_params.level, self.get_current_view_scene_rect())
             else:
                 start_margins = QMarginsF(200, 200, 200, 200)
