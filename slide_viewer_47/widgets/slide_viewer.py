@@ -2,7 +2,7 @@ from PyQt5 import QtCore
 
 import PyQt5
 from PyQt5.QtCore import QPoint, Qt, QEvent, QRect, QSize, QRectF, pyqtSignal, QMarginsF
-from PyQt5.QtGui import QWheelEvent, QMouseEvent, QTransform, QPaintEvent
+from PyQt5.QtGui import QWheelEvent, QMouseEvent, QTransform, QPaintEvent, QShowEvent
 from PyQt5.QtWidgets import QWidget, QGraphicsView, QVBoxLayout, QLabel, QRubberBand, QMessageBox, QHBoxLayout, QFrame, \
     QGroupBox
 
@@ -40,8 +40,11 @@ class SlideViewer(QWidget):
         self.slide_helper = None
 
     def init_labels(self, word_wrap):
-        self.level_label = QLabel()
-        self.level_label.setWordWrap(word_wrap)
+        # word_wrap = True
+        self.level_downsample_label = QLabel()
+        self.level_downsample_label.setWordWrap(word_wrap)
+        self.level_size_label = QLabel()
+        self.level_size_label.setWordWrap(word_wrap)
         self.selected_rect_label = QLabel()
         self.selected_rect_label.setWordWrap(word_wrap)
         self.mouse_pos_scene_label = QLabel()
@@ -50,14 +53,15 @@ class SlideViewer(QWidget):
         self.view_rect_scene_label.setWordWrap(word_wrap)
         self.labels_layout = QVBoxLayout()
         self.labels_layout.setAlignment(Qt.AlignTop)
-        self.labels_layout.addWidget(self.level_label)
+        self.labels_layout.addWidget(self.level_downsample_label)
+        self.labels_layout.addWidget(self.level_size_label)
         self.labels_layout.addWidget(self.mouse_pos_scene_label)
         # self.labels_layout.addWidget(self.selected_rect_label)
         self.labels_layout.addWidget(self.view_rect_scene_label)
 
     def init_layout(self, viewer_top_else_left=True):
         main_layout = QVBoxLayout(self) if viewer_top_else_left else QHBoxLayout(self)
-        main_layout.addWidget(self.view)
+        main_layout.addWidget(self.view, )
         main_layout.addLayout(self.labels_layout)
         main_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(main_layout)
@@ -89,7 +93,7 @@ class SlideViewer(QWidget):
             if self.slide_view_params.level_rect:
                 # self.view.fitInView(QRectF(*self.slide_view_params.level_rect), Qt.KeepAspectRatioByExpanding)
                 self.view.fitInView(QRectF(*self.slide_view_params.level_rect), Qt.KeepAspectRatio)
-                # print("after fit: ", self.slide_view_params.level, self.get_current_view_scene_rect())
+                # print("after fit: ", self.get_current_view_scene_rect())
             else:
                 start_margins = QMarginsF(200, 200, 200, 200)
                 start_image_rect_ = self.slide_helper.get_rect_for_level(self.slide_view_params.level)
@@ -101,14 +105,16 @@ class SlideViewer(QWidget):
         self.eventSignal.emit(event)
         event_processed = False
         # print("size when event: ", event, event.type(), self.view.viewport().size())
-        if isinstance(event, QPaintEvent):
+        if isinstance(event, QShowEvent):
             """
             we need it deffered because fitInView logic depends on current viewport size. Expecting at this point widget is finally resized before being shown at first
             """
             if self.scale_initializer_deffered_function:
+                # TODO labels start to occupy some space after view was already fitted, and labels will reduce size of viewport
+                # self.update_labels()
                 self.scale_initializer_deffered_function()
-                self.scale_initializer_deffered_function = None
                 self.on_view_changed()
+                self.scale_initializer_deffered_function = None
         elif isinstance(event, QWheelEvent):
             event_processed = self.process_viewport_wheel_event(event)
             # we handle wheel event to prevent GraphicsView interpret it as scrolling
@@ -153,7 +159,7 @@ class SlideViewer(QWidget):
                 return True
         elif event.type() == QEvent.MouseMove:
             self.mouse_pos_scene_label.setText(
-                "mouse pos scene: " + point_to_str(self.view.mapToScene(event.pos())))
+                "mouse_scene: " + point_to_str(self.view.mapToScene(event.pos())))
             if not self.mouse_press_view.isNull():
                 self.rubber_band.setGeometry(QRect(self.mouse_press_view, event.pos()).normalized())
             return True
@@ -210,15 +216,15 @@ class SlideViewer(QWidget):
     def update_labels(self):
         level_downsample = self.slide_helper.get_downsample_for_level(self.slide_view_params.level)
         level_size = self.slide_helper.get_level_size(self.slide_view_params.level)
-        self.level_label.setText(
-            "current level, downsample, size: {}, {:.4f}, ({}, {})".format(self.slide_view_params.level,
-                                                                           level_downsample,
-                                                                           *level_size))
+        self.level_downsample_label.setText(
+            "level, downsample: {}, {:.0f}".format(self.slide_view_params.level,
+                                                   level_downsample))
+        self.level_size_label.setText("level_size: ({}, {})".format(*level_size))
         self.view_rect_scene_label.setText(
-            "view_rect_scene: ({:.2f},{:.2f},{:.2f},{:.2f})".format(*self.get_current_view_scene_rect().getRect()))
+            "view_scene: ({:.0f},{:.0f},{:.0f},{:.0f})".format(*self.get_current_view_scene_rect().getRect()))
         if self.slide_view_params.selected_rect_0_level:
             self.selected_rect_label.setText(
-                "selected rect (0-level): ({:.2f},{:.2f},{:.2f},{:.2f})".format(
+                "selected rect (0-level): ({:.0f},{:.0f},{:.0f},{:.0f})".format(
                     *self.slide_view_params.selected_rect_0_level))
 
     def on_view_changed(self):
