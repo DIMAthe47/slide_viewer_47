@@ -25,7 +25,8 @@ def build_tiles_level(level, tile_size, slide_helper: SlideHelper):
 def build_rects_and_colors_for_grid(grid_size_0_level, level_size_0, slice_func=slice_rect2):
     rect_size = grid_size_0_level[0], grid_size_0_level[1]
     rects = slice_func(level_size_0, rect_size, rect_size)
-    colors = [(0, 255, 0, random.randint(0, 128)) for i in range(len(rects))]
+    # colors = [(0, 255, 0, random.randint(0, 128)) for i in range(len(rects))]
+    colors = [(0, 255, 0, 0) for i in range(len(rects))]
     return rects, colors
 
 
