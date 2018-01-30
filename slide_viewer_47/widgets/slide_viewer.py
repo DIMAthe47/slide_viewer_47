@@ -63,7 +63,7 @@ class SlideViewer(QWidget):
         main_layout = QVBoxLayout(self) if viewer_top_else_left else QHBoxLayout(self)
         main_layout.addWidget(self.view, )
         main_layout.addLayout(self.labels_layout)
-        main_layout.setContentsMargins(0, 0, 0, 0)
+        # main_layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(main_layout)
 
     """

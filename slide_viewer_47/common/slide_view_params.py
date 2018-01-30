@@ -25,6 +25,14 @@ class SlideViewParams:
         self.level = level
         self.level_rect = level_rect
 
+    def cache_key(self):
+        cache_key_ = "{}_{}_{}_{}_{}_{}".format(self.slide_path,
+                                                   self.level,
+                                                   self.level_rect, id(self.grid_rects_0_level),
+                                                   id(self.grid_colors_0_level),
+                                                   self.grid_visible)
+        return cache_key_
+
     # def __str__(self) -> str:
     #     return str(vars(self))
 #
