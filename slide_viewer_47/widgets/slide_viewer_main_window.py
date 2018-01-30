@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow
 
 from slide_viewer_47.widgets.slide_viewer import SlideViewer
-from slide_viewer_47.widgets.slide_viewer_menu import SlideViewerMenu
+from slide_viewer_47.widgets.menu.slide_viewer_menu import SlideViewerMenu
 
 
 class SlideViewerMainWindow(QMainWindow):
@@ -13,6 +13,5 @@ class SlideViewerMainWindow(QMainWindow):
         self.setCentralWidget(self.slide_viewer)
 
         menuBar = self.menuBar()
-        slide_viewer_menu = SlideViewerMenu(menuBar)
-        slide_viewer_menu.set_slide_viewer(self.slide_viewer)
+        slide_viewer_menu = SlideViewerMenu("actions", menuBar, self.slide_viewer)
         menuBar.addMenu(slide_viewer_menu)
