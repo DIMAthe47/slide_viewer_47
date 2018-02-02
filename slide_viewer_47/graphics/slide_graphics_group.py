@@ -1,6 +1,7 @@
 from PyQt5.QtCore import QRectF, Qt
 from PyQt5.QtWidgets import QGraphicsItemGroup
 
+from elapsed_timer import elapsed_timer
 from slide_viewer_47.common.level_builders import build_tiles_level, build_grid_level, build_grid_level_from_rects
 from slide_viewer_47.common.slide_view_params import SlideViewParams
 from slide_viewer_47.common.slide_helper import SlideHelper
@@ -27,14 +28,20 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
         self.levels = self.slide_helper.get_levels()
 
         self.leveled_graphics_group = LeveledGraphicsGroup(self.levels, self)
-        self.leveled_graphics_grid = LeveledGraphicsGroup(self.levels, self)
         self.leveled_graphics_selection = LeveledGraphicsGroup(self.levels, self)
-        self.leveled_groups = [self.leveled_graphics_group, self.leveled_graphics_grid, self.leveled_graphics_selection]
+        self.leveled_groups = [self.leveled_graphics_group, self.leveled_graphics_selection]
 
-        self.init_tiles_levels()
-        self.init_grid_levels()
-        self.init_selected_rect_levels()
-        self.update_visible_level(self.slide_view_params.level)
+        self.graphics_grid = None
+
+        print(slide_view_params.slide_path)
+        print("=" * 100)
+        with elapsed_timer() as elapsed:
+            self.init_tiles_levels()
+            print("init_tiles_levels", elapsed())
+            self.init_grid_levels()
+            print("init_grid_levels", elapsed())
+            self.init_selected_rect_levels()
+            self.update_visible_level(self.slide_view_params.level)
 
         # self.setFlag(QGraphicsItem.ItemHasNoContents, True)
         # self.setFlag(QGraphicsItem.ItemContainsChildrenInShape, True)
@@ -53,15 +60,14 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
 
     def init_grid_levels(self):
         if self.slide_view_params.grid_rects_0_level:
-            for level in self.levels:
-                self.leveled_graphics_grid.clear_level(level)
-                graphics_grid = build_grid_level_from_rects(level, self.slide_view_params.grid_rects_0_level,
-                                                            self.slide_view_params.grid_colors_0_level,
-                                                            self.slide_helper)
-                self.leveled_graphics_grid.add_item_to_level_group(level, graphics_grid)
-                graphics_grid.setZValue(10)
-
-            self.leveled_graphics_grid.setVisible(self.slide_view_params.grid_visible)
+            level = 0
+            graphics_grid = build_grid_level_from_rects(level, self.slide_view_params.grid_rects_0_level,
+                                                        self.slide_view_params.grid_colors_0_level,
+                                                        self.slide_helper)
+            graphics_grid.setZValue(10)
+            graphics_grid.setVisible(self.slide_view_params.grid_visible)
+            self.addToGroup(graphics_grid)
+            self.graphics_grid = graphics_grid
 
     def init_selected_rect_levels(self):
         if self.slide_view_params.selected_rect_0_level:
@@ -83,6 +89,9 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
             leveled_group.update_visible_level(visible_level)
         self.slide_view_params.level = visible_level
 
+        if self.graphics_grid:
+            self.graphics_grid.update_downsmaple(self.slide_helper.get_downsample_for_level(visible_level))
+
     def update_grid_rects_0_level(self, grid_rects_0_level, grid_colors_0_level):
         self.slide_view_params.grid_rects_0_level = grid_rects_0_level
         self.slide_view_params.grid_colors_0_level = grid_colors_0_level
@@ -90,7 +99,8 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
 
     def update_grid_visibility(self, grid_visible):
         self.slide_view_params.grid_visible = grid_visible
-        self.leveled_graphics_grid.setVisible(grid_visible)
+        if self.graphics_grid:
+            self.graphics_grid.setVisible(grid_visible)
 
     def update_selected_rect_0_level(self, selected_rect_0_level):
         self.slide_view_params.selected_rect_0_level = selected_rect_0_level

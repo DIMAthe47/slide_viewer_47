@@ -124,7 +124,6 @@ class SlideViewerViewMenu(MyMenu):
         if res == QDialog.Accepted:
             image = build_screenshot_image(self.slide_viewer.scene, QSize(width.value(), height.value()),
                                            self.slide_viewer.get_current_view_scene_rect())
-            self.slide_viewer.scene.views()
             image.save(filepath.text())
 
     def on_toggle_grid_action(self):

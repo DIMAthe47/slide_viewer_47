@@ -36,7 +36,7 @@ def build_grid_level(level, grid_size_0_level, slide_helper: SlideHelper):
     rect_size = grid_size_0_level[0] / level_downsample, grid_size_0_level[1] / level_downsample
     rects = slice_rect(level_size, rect_size)
 
-    colors = [QColor(0, 255, 0, random.randint(0, 128)) for i in range(len(rects))]
+    colors = [(0, 255, 0, random.randint(0, 128)) for i in range(len(rects))]
     graphics_grid = GraphicsGrid(rects, colors, [0, 0, *level_size])
     return graphics_grid
 
@@ -47,6 +47,6 @@ def build_grid_level_from_rects(level, rects_0_level, colors, slide_helper: Slid
     rects = [(
         rect_0_level[0] / level_downsample, rect_0_level[1] / level_downsample, rect_0_level[2] / level_downsample,
         rect_0_level[3] / level_downsample) for rect_0_level in rects_0_level]
-    qcolors = [QColor(*color) for color in colors]
-    graphics_grid = GraphicsGrid(rects, qcolors, [0, 0, *level_size])
+    # qcolors = [QColor(*color) for color in colors]
+    graphics_grid = GraphicsGrid(rects, colors, [0, 0, *level_size])
     return graphics_grid
