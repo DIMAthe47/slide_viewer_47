@@ -1,7 +1,6 @@
 from PyQt5.QtCore import QRectF, Qt
 from PyQt5.QtWidgets import QGraphicsItemGroup
 
-from elapsed_timer import elapsed_timer
 from slide_viewer_47.common.level_builders import build_tiles_level, build_grid_level_from_rects
 from slide_viewer_47.common.slide_view_params import SlideViewParams
 from slide_viewer_47.common.slide_helper import SlideHelper
@@ -33,15 +32,15 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
 
         self.graphics_grid = None
 
-        print(slide_view_params.slide_path)
-        print("=" * 100)
-        with elapsed_timer() as elapsed:
-            self.init_tiles_levels()
-            print("init_tiles_levels", elapsed())
-            self.init_grid_levels()
-            print("init_grid_levels", elapsed())
-            self.init_selected_rect_levels()
-            self.update_visible_level(self.slide_view_params.level)
+        # print(slide_view_params.slide_path)
+        # print("=" * 100)
+        # with elapsed_timer() as elapsed:
+        self.init_tiles_levels()
+        # print("init_tiles_levels", elapsed())
+        self.init_grid_levels()
+        # print("init_grid_levels", elapsed())
+        self.init_selected_rect_levels()
+        self.update_visible_level(self.slide_view_params.level)
 
         # self.setFlag(QGraphicsItem.ItemHasNoContents, True)
         # self.setFlag(QGraphicsItem.ItemContainsChildrenInShape, True)
