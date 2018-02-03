@@ -100,6 +100,8 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
     def update_grid_visibility(self, grid_visible):
         self.slide_view_params.grid_visible = grid_visible
         if self.graphics_grid:
+            self.graphics_grid.update_downsmaple(
+                self.slide_helper.get_downsample_for_level(self.slide_view_params.level))
             self.graphics_grid.setVisible(grid_visible)
 
     def update_selected_rect_0_level(self, selected_rect_0_level):

@@ -49,24 +49,27 @@ class GraphicsGrid(QGraphicsItem):
 
     def paint(self, painter: QtGui.QPainter, option: 'QStyleOptionGraphicsItem',
               widget: typing.Optional[QWidget] = ...):
-        painter.save()
-        scale = 1 / self.downsample
-        painter.scale(scale, scale)
+        with elapsed_timer() as elapsed:
+            painter.save()
+            scale = 1 / self.downsample
+            painter.scale(scale, scale)
 
-        # for grid_rect, color in zip(self.grid_rects_0_level, self.color_alphas):
-        #     painter.setBrush(color)
-        #     painter.drawRect(*grid_rect)
+            # for grid_rect, color in zip(self.grid_rects_0_level, self.color_alphas):
+            #     painter.setBrush(color)
+            #     painter.drawRect(*grid_rect)
 
-        for color_alpha, rects in self.color_key__rects_0_level.items():
-            color = QColor(*self.base_color_rgb, color_alpha)
-            painter.setBrush(color)
-            qrectfs = self.star_map_(QRectF, rects)
-            painter.drawRects(qrectfs)
+            for color_alpha, rects in self.color_key__rects_0_level.items():
+                color = QColor(*self.base_color_rgb, color_alpha)
+                painter.setBrush(color)
+                qrectfs = self.star_map_(QRectF, rects)
+                painter.drawRects(qrectfs)
 
-        # for color_key, grid_rects in enumerate(self.color_key__rects_0_level):
-        #     if grid_rects:
-        #         color = QColor(0, 255, 0, color_key)
-        #         painter.setBrush(color)
-        #         qrectfs = self.star_map_(QRectF, grid_rects)
-        #         painter.drawRects(qrectfs)
-        painter.restore()
+            # for color_key, grid_rects in enumerate(self.color_key__rects_0_level):
+            #     if grid_rects:
+            #         color = QColor(0, 255, 0, color_key)
+            #         painter.setBrush(color)
+            #         qrectfs = self.star_map_(QRectF, grid_rects)
+            #         painter.drawRects(qrectfs)
+            painter.restore()
+
+            print("grid_paint ", elapsed())
