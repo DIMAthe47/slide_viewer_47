@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import QInputDialog, QDialog, QDialogButtonBox, QVBoxLayout
 from PyQt5.QtGui import QPixmapCache, QColor
 from PyQt5.QtWidgets import QMenuBar, QAction, QFileDialog, QMenu
 
-from slide_viewer_47.common.level_builders import build_rects_and_colors_for_grid
+from slide_viewer_47.common.level_builders import build_rects_and_color_alphas_for_grid
 from slide_viewer_47.common.qt.my_action import MyAction
 from slide_viewer_47.common.qt.my_menu import MyMenu
 from slide_viewer_47.common.slide_view_params import SlideViewParams

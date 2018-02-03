@@ -2,7 +2,7 @@ from PyQt5.QtCore import QRectF, Qt
 from PyQt5.QtWidgets import QGraphicsItemGroup
 
 from elapsed_timer import elapsed_timer
-from slide_viewer_47.common.level_builders import build_tiles_level, build_grid_level, build_grid_level_from_rects
+from slide_viewer_47.common.level_builders import build_tiles_level, build_grid_level_from_rects
 from slide_viewer_47.common.slide_view_params import SlideViewParams
 from slide_viewer_47.common.slide_helper import SlideHelper
 from slide_viewer_47.graphics.leveled_graphics_group import LeveledGraphicsGroup
@@ -62,7 +62,7 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
         if self.slide_view_params.grid_rects_0_level:
             level = 0
             graphics_grid = build_grid_level_from_rects(level, self.slide_view_params.grid_rects_0_level,
-                                                        self.slide_view_params.grid_colors_0_level,
+                                                        self.slide_view_params.grid_color_alphas_0_level,
                                                         self.slide_helper)
             graphics_grid.setZValue(10)
             graphics_grid.setVisible(self.slide_view_params.grid_visible)
@@ -92,9 +92,9 @@ class SlideGraphicsGroup(QGraphicsItemGroup):
         if self.graphics_grid:
             self.graphics_grid.update_downsmaple(self.slide_helper.get_downsample_for_level(visible_level))
 
-    def update_grid_rects_0_level(self, grid_rects_0_level, grid_colors_0_level):
+    def update_grid_rects_0_level(self, grid_rects_0_level, grid_color_alphas_0_level):
         self.slide_view_params.grid_rects_0_level = grid_rects_0_level
-        self.slide_view_params.grid_colors_0_level = grid_colors_0_level
+        self.slide_view_params.grid_color_alphas_0_level = grid_color_alphas_0_level
         self.init_grid_levels()
 
     def update_grid_visibility(self, grid_visible):

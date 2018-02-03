@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout, QFormLayout,
     QHBoxLayout, QSpinBox, QMessageBox
 
 from slide_viewer_47.common.json_utils import to_json
-from slide_viewer_47.common.level_builders import build_rects_and_colors_for_grid
+from slide_viewer_47.common.level_builders import build_rects_and_color_alphas_for_grid
 from slide_viewer_47.common.qt.my_action import MyAction
 from slide_viewer_47.common.qt.my_menu import MyMenu
 from slide_viewer_47.common.qt.my_spin_box import MySpinBox
@@ -66,9 +66,9 @@ class SlideViewerViewMenu(MyMenu):
         button_box.rejected.connect(dialog.reject)
         res = dialog.exec()
         if res == QDialog.Accepted:
-            rects, colors = build_rects_and_colors_for_grid((grid_w.value(), grid_h.value()),
-                                                            self.slide_viewer.slide_helper.get_level_size(0))
-            self.slide_viewer.slide_graphics.update_grid_rects_0_level(rects, colors)
+            rects, color_alphas = build_rects_and_color_alphas_for_grid((grid_w.value(), grid_h.value()),
+                                                                       self.slide_viewer.slide_helper.get_level_size(0))
+            self.slide_viewer.slide_graphics.update_grid_rects_0_level(rects, color_alphas)
 
     def on_go_to_action(self):
         dialog = QDialog()
